@@ -20,6 +20,21 @@ def sht_matrix(N, azi, elev, weights=None):
     return Ymn
 
 
+def Legendre_matrix(N, ctheta):
+    """ (N+1) x M matrix of weighted Legendre Polynominals
+        2*n+1/4*pi * P_n(ctheta)
+    """
+    if ctheta.ndim == 0:
+        M = 1
+    else:
+        M = len(ctheta)
+    Lmn = np.zeros([N+1, M], dtype=complex)
+    for n in range(N+1):
+        Lmn[n, :] = (2*n+1)/(4*np.pi) * np.polyval(special.legendre(n), ctheta)
+
+    return Lmn
+
+
 def grid_equal_angle(n):
     """ equi_angular grid on sphere.
     (cf. Rafaely book, sec.3.2)
