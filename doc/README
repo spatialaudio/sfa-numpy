@@ -1,0 +1,4 @@
+This directory holds the documentation in reStructuredText/Sphinx format.
+
+If you want to generate the HTML (or LaTeX/PDF) files on your computer, have a
+look at http://python.sfstoolbox.org/en/latest/contributing.html.
