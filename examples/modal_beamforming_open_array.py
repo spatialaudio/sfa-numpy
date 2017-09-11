@@ -1,6 +1,6 @@
 """
-Compute the plane wave decomposition for an incident broadband plane wave
-using a modal beamformer of finite order.
+    Compute the plane wave decomposition for an incident broadband plane wave
+    on an open spherical array using a modal beamformer of finite order.
 """
 
 import numpy as np
@@ -45,11 +45,11 @@ plt.colorbar()
 plt.xlabel(r'$kr$')
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (frequency domain)')
-plt.savefig('modal_beamformer_pwd_fd.png')
+plt.savefig('modal_open_beamformer_pwd_fd.png')
 
 plt.figure()
 plt.pcolormesh(range(2*len(kr)-2), azi_pwd/np.pi, 20*np.log10(np.abs(q_pwd_t.T)), vmin=-10)
 plt.colorbar()
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (time domain)')
-plt.savefig('modal_beamformer_pwd_td.png')
+plt.savefig('modal_open_beamformer_pwd_td.png')
