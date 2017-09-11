@@ -1,10 +1,13 @@
 from __future__ import division
 import numpy as np
 from scipy import special
+from .. import util
 
 
 def sht_matrix(N, azi, elev, weights=None):
     """ (N+1)**2 x M SHT matrix"""
+    azi = util.asarray_1d(azi)
+    elev = util.asarray_1d(elev)
     if azi.ndim == 0:
         M = 1
     else:

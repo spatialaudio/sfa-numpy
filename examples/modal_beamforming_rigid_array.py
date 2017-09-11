@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import micarray
 
 N = 20  # order of modal beamformer/microphone array
-azi_pw = np.array([np.pi])  # incidence angle of plane wave
+azi_pw = np.pi  # incidence angle of plane wave
 azi_pwd = np.linspace(0, 2*np.pi, 91, endpoint=False)  # angles for plane wave decomposition
 kr = np.linspace(0.1, 20, 100)  # wavenumber-radius vector
 

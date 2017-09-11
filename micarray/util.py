@@ -17,3 +17,20 @@ def coherence_of_columns(A):
     for j in range(N):
         Gram_A[j, j] = 0
     return np.max(np.abs(Gram_A))
+
+
+def asarray_1d(a, **kwargs):
+    """Squeeze the input and check if the result is one-dimensional.
+
+    Returns *a* converted to a `numpy.ndarray` and stripped of
+    all singleton dimensions.  Scalars are "upgraded" to 1D arrays.
+    The result must have exactly one dimension.
+    If not, an error is raised.
+
+    """
+    result = np.squeeze(np.asarray(a, **kwargs))
+    if result.ndim == 0:
+        result = result.reshape((1,))
+    elif result.ndim > 1:
+        raise ValueError("array must be one-dimensional")
+    return result
