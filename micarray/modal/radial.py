@@ -1,11 +1,76 @@
 from __future__ import division
 import numpy as np
 from scipy import special
+from .. import util
 
 
-def spherical(N, kr, setup, plane_wave):
-    if np.isscalar(kr):
-        kr = np.asarray([kr])
+def spherical_pw(N, k, r, setup):
+    """ Computes the radial component of the spherical harmonics expansion of
+        a plane wave impinging on a spherical array.
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    kr = util.asarray_1d(k*r)
+    n = np.arange(N+1)
+
+    bn = _bn(N, kr, setup)
+    for i, x in enumerate(kr):
+        bn[i, :] = bn[i, :] * 4*np.pi * (1j)**n
+    return bn
+
+
+def spherical_ps(N, k, r, rs, setup):
+    """ Computes the radial component of the spherical harmonics expansion of
+        a point source impinging on a spherical array.
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    rs : float
+        Distance of source.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    k = util.asarray_1d(k)
+    krs = k*rs
+    n = np.arange(N+1)
+
+    bn = _bn(N, k*r, setup)
+    for i, x in enumerate(krs):
+        hn = special.spherical_jn(n, x) - 1j * special.spherical_yn(n, x)
+        bn[i, :] = bn[i, :] * 4*np.pi * (-1j) * hn * k[i]
+
+    return bn
+
+
+def _bn(N, kr, setup):
+    """ Computes the radial weighing functions b_n(kr)
+        (cf. eq.(2.62), Rafaely 2015) for diferent array types.
+    """
     n = np.arange(N+1)
     bns = np.zeros((len(kr), N+1), dtype=complex)
     for i, x in enumerate(kr):
@@ -21,11 +86,8 @@ def spherical(N, kr, setup, plane_wave):
             bn = jn - jnd/hnd*hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
-        if plane_wave:
-            bn = bn * 4*np.pi * (1j)**n
         bns[i, :] = bn
-        bns = np.squeeze(bns)
-    return bns
+    return np.squeeze(bns)
 
 
 def regularize(dn, a0, method):
