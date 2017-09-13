@@ -4,6 +4,10 @@
 
 .. toctree::
 
+    usage
+    modal
+    utilities
+
 .. only:: html
 
     * :ref:`genindex`

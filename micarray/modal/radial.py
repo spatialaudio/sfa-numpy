@@ -1,11 +1,111 @@
 from __future__ import division
 import numpy as np
 from scipy import special
+from .. import util
 
 
-def spherical(N, kr, setup, plane_wave):
-    if np.isscalar(kr):
-        kr = np.asarray([kr])
+def spherical_pw(N, k, r, setup):
+    r"""Radial coefficients for a plane wave
+
+    Computes the radial component of the spherical harmonics expansion of a
+    plane wave impinging on a spherical array.
+
+    .. math::
+
+        \mathring{P}_n(k) = 4 \pi i^n b_n(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    kr = util.asarray_1d(k*r)
+    n = np.arange(N+1)
+
+    bn = weights(N, kr, setup)
+    for i, x in enumerate(kr):
+        bn[i, :] = bn[i, :] * 4*np.pi * (1j)**n
+    return bn
+
+
+def spherical_ps(N, k, r, rs, setup):
+    r"""Radial coefficients for a point source
+
+    Computes the radial component of the spherical harmonics expansion of a
+    point source impinging on a spherical array.
+
+    .. math::
+
+        \mathring{P}_n(k) = 4 \pi (-i) k h_n^{(2)}(k r_s) b_n(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    rs : float
+        Distance of source.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    k = util.asarray_1d(k)
+    krs = k*rs
+    n = np.arange(N+1)
+
+    bn = weights(N, k*r, setup)
+    for i, x in enumerate(krs):
+        hn = special.spherical_jn(n, x) - 1j * special.spherical_yn(n, x)
+        bn[i, :] = bn[i, :] * 4*np.pi * (-1j) * hn * k[i]
+
+    return bn
+
+
+def weights(N, kr, setup):
+    r"""Radial weighing functions
+
+    Computes the radial weighting functions for diferent array types
+    (cf. eq.(2.62), Rafaely 2015).
+
+    For instance for an rigid array
+
+    .. math::
+
+        b_n(kr) = j_n(kr) - \frac{j_n^\prime(kr)}{h_n^{(2)\prime}(kr)}h_n^{(2)}(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    kr : array_like
+        Wavenumber * radius.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+
+    """
     n = np.arange(N+1)
     bns = np.zeros((len(kr), N+1), dtype=complex)
     for i, x in enumerate(kr):
@@ -21,11 +121,8 @@ def spherical(N, kr, setup, plane_wave):
             bn = jn - jnd/hnd*hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
-        if plane_wave:
-            bn = bn * 4*np.pi * (1j)**n
         bns[i, :] = bn
-        bns = np.squeeze(bns)
-    return bns
+    return np.squeeze(bns)
 
 
 def regularize(dn, a0, method):
