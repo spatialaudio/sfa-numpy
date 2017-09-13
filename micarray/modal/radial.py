@@ -5,8 +5,14 @@ from .. import util
 
 
 def spherical_pw(N, k, r, setup):
-    """ Computes the radial component of the spherical harmonics expansion of
-        a plane wave impinging on a spherical array.
+    r"""Radial coefficients for a plane wave
+
+    Computes the radial component of the spherical harmonics expansion of a
+    plane wave impinging on a spherical array.
+
+    .. math::
+
+        \mathring{P}_n(k) = 4 \pi i^n b_n(kr)
 
     Parameters
     ----------
@@ -27,15 +33,21 @@ def spherical_pw(N, k, r, setup):
     kr = util.asarray_1d(k*r)
     n = np.arange(N+1)
 
-    bn = _bn(N, kr, setup)
+    bn = weights(N, kr, setup)
     for i, x in enumerate(kr):
         bn[i, :] = bn[i, :] * 4*np.pi * (1j)**n
     return bn
 
 
 def spherical_ps(N, k, r, rs, setup):
-    """ Computes the radial component of the spherical harmonics expansion of
-        a point source impinging on a spherical array.
+    r"""Radial coefficients for a point source
+
+    Computes the radial component of the spherical harmonics expansion of a
+    point source impinging on a spherical array.
+
+    .. math::
+
+        \mathring{P}_n(k) = 4 \pi (-i) k h_n^{(2)}(k r_s) b_n(kr)
 
     Parameters
     ----------
@@ -59,7 +71,7 @@ def spherical_ps(N, k, r, rs, setup):
     krs = k*rs
     n = np.arange(N+1)
 
-    bn = _bn(N, k*r, setup)
+    bn = weights(N, k*r, setup)
     for i, x in enumerate(krs):
         hn = special.spherical_jn(n, x) - 1j * special.spherical_yn(n, x)
         bn[i, :] = bn[i, :] * 4*np.pi * (-1j) * hn * k[i]
@@ -67,9 +79,32 @@ def spherical_ps(N, k, r, rs, setup):
     return bn
 
 
-def _bn(N, kr, setup):
-    """ Computes the radial weighing functions b_n(kr)
-        (cf. eq.(2.62), Rafaely 2015) for diferent array types.
+def weights(N, kr, setup):
+    r"""Radial weighing functions
+
+    Computes the radial weighting functions for diferent array types
+    (cf. eq.(2.62), Rafaely 2015).
+
+    For instance for an rigid array
+
+    .. math::
+
+        b_n(kr) = j_n(kr) - \frac{j_n^\prime(kr)}{h_n^{(2)\prime}(kr)}h_n^{(2)}(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    kr : array_like
+        Wavenumber * radius.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+
     """
     n = np.arange(N+1)
     bns = np.zeros((len(kr), N+1), dtype=complex)
