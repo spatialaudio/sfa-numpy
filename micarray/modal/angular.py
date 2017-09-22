@@ -5,7 +5,42 @@ from .. import util
 
 
 def sht_matrix(N, azi, elev, weights=None):
-    """ (N+1)**2 x M SHT matrix"""
+    r"""Matrix of spherical harmonics up to order N for given angles.
+
+    Computes a matrix of spherical harmonics up to order :math:`N`
+    for the given angles/grid.
+
+    .. math::
+
+        \mathbf{Y} = \left[ \begin{array}{cccccc} 
+        Y_0^0(\theta[0], \phi[0]) & Y_1^{-1}(\theta[0], \phi[0]) & Y_1^0(\theta[0], \phi[0]) & Y_1^1(\theta[0], \phi[0]) & \dots & Y_N^N(\theta[0], \phi[0])  \\
+        Y_0^0(\theta[1], \phi[1]) & Y_1^{-1}(\theta[1], \phi[1]) & Y_1^0(\theta[1], \phi[1]) & Y_1^1(\theta[1], \phi[1]) & \dots & Y_N^N(\theta[1], \phi[1])  \\
+        \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+        Y_0^0(\theta[Q-1], \phi[Q-1]) & Y_1^{-1}(\theta[Q-1], \phi[Q-1]) & Y_1^0(\theta[Q-1], \phi[Q-1]) & Y_1^1(\theta[Q-1], \phi[Q-1]) & \dots & Y_N^N(\theta[Q-1], \phi[Q-1])
+        \end{array} \right]
+
+    where
+
+    .. math::
+
+        Y_n^m(\theta, \phi) = \sqrt{\frac{2n + 1}{4 \pi} \frac{(n-m)!}{(n+m)!}} P_n^m(\cos \theta) e^{i m \phi}
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    azi : (Q,) array_like
+        Azimuth.
+    elev : (Q,) array_like
+        Elevation.
+    weights : (Q,) array_like, optional
+        Quadrature weights.
+
+    Returns
+    -------
+    Ymn : ((N+1)**2, Q) numpy.ndarray
+        Matrix of spherical harmonics.
+    """
     azi = util.asarray_1d(azi)
     elev = util.asarray_1d(elev)
     if azi.ndim == 0:
@@ -24,8 +59,26 @@ def sht_matrix(N, azi, elev, weights=None):
 
 
 def Legendre_matrix(N, ctheta):
-    """ (N+1) x M matrix of weighted Legendre Polynominals
-        2*n+1/4*pi * P_n(ctheta)
+    r"""Matrix of weighted Legendre Polynominals.
+
+    Computes a matrix of weighted Legendre polynominals up to order N for
+    the given angles
+
+    .. math::
+
+        L_n(\theta) = \frac{2n+1}{4 \pi} P_n(\theta)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    ctheta : (Q,) array_like
+        Angles.
+
+    Returns
+    -------
+    Lmn : ((N+1), Q) numpy.ndarray
+        Matrix containing Legendre polynominals.
     """
     if ctheta.ndim == 0:
         M = 1
@@ -39,8 +92,23 @@ def Legendre_matrix(N, ctheta):
 
 
 def grid_equal_angle(n):
-    """ equi_angular grid on sphere.
-    (cf. Rafaely book, sec.3.2)
+    """Equi-angular sampling points on a sphere.
+
+    According to (cf. Rafaely book, sec.3.2)
+
+    Parameters
+    ----------
+    n : int
+        Maximum order.
+
+    Returns
+    -------
+    azi : array_like
+        Azimuth.
+    elev : array_like
+        Elevation.
+    weights : array_like
+        Quadrature weights.
     """
     azi = np.linspace(0, 2*np.pi, 2*n+2, endpoint=False)
     elev, d_elev = np.linspace(0, np.pi, 2*n+2, endpoint=False, retstep=True)
@@ -60,7 +128,22 @@ def grid_equal_angle(n):
 
 def grid_gauss(n):
     """ Gauss-Legendre sampling points on sphere.
-    (cf. Rafaely book, sec.3.3)
+
+    According to (cf. Rafaely book, sec.3.3)
+
+    Parameters
+    ----------
+    n : int
+        Maximum order.
+
+    Returns
+    -------
+    azi : array_like
+        Azimuth.
+    elev : array_like
+        Elevation.
+    weights : array_like
+        Quadrature weights.
     """
     azi = np.linspace(0, 2*np.pi, 2*n+2, endpoint=False)
     x, weights = np.polynomial.legendre.leggauss(n+1)

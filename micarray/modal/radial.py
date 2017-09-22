@@ -5,7 +5,7 @@ from .. import util
 
 
 def spherical_pw(N, k, r, setup):
-    r"""Radial coefficients for a plane wave
+    r"""Radial coefficients for a plane wave.
 
     Computes the radial component of the spherical harmonics expansion of a
     plane wave impinging on a spherical array.
@@ -18,7 +18,7 @@ def spherical_pw(N, k, r, setup):
     ----------
     N : int
         Maximum order.
-    k : array_like
+    k : (M,) array_like
         Wavenumber.
     r : float
         Radius of microphone array.
@@ -27,7 +27,7 @@ def spherical_pw(N, k, r, setup):
 
     Returns
     -------
-    numpy.ndarray
+    bn : (M, N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
     """
     kr = util.asarray_1d(k*r)
@@ -40,7 +40,7 @@ def spherical_pw(N, k, r, setup):
 
 
 def spherical_ps(N, k, r, rs, setup):
-    r"""Radial coefficients for a point source
+    r"""Radial coefficients for a point source.
 
     Computes the radial component of the spherical harmonics expansion of a
     point source impinging on a spherical array.
@@ -53,7 +53,7 @@ def spherical_ps(N, k, r, rs, setup):
     ----------
     N : int
         Maximum order.
-    k : array_like
+    k : (M,) array_like
         Wavenumber.
     r : float
         Radius of microphone array.
@@ -64,7 +64,7 @@ def spherical_ps(N, k, r, rs, setup):
 
     Returns
     -------
-    numpy.ndarray
+    bn : (M, N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
     """
     k = util.asarray_1d(k)
@@ -80,7 +80,7 @@ def spherical_ps(N, k, r, rs, setup):
 
 
 def weights(N, kr, setup):
-    r"""Radial weighing functions
+    r"""Radial weighing functions.
 
     Computes the radial weighting functions for diferent array types
     (cf. eq.(2.62), Rafaely 2015).
@@ -95,14 +95,14 @@ def weights(N, kr, setup):
     ----------
     N : int
         Maximum order.
-    kr : array_like
+    kr : (M,) array_like
         Wavenumber * radius.
     setup : {'open', 'card', 'rigid'}
         Array configuration (open, cardioids, rigid).
 
     Returns
     -------
-    numpy.ndarray
+    bn : (M, N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
 
     """
@@ -126,7 +126,28 @@ def weights(N, kr, setup):
 
 
 def regularize(dn, a0, method):
-    """(cf. Rettberg, Spors : DAGA 2014)"""
+    """Regularization (amplitude limitation) of radial filters.
+
+    Amplitude limitation of radial filter coefficients, methods according
+    to (cf. Rettberg, Spors : DAGA 2014)
+
+    Parameters
+    ----------
+    dn : numpy.ndarray
+        Values to be regularized
+    a0 : float
+        Parameter for regularization (not required for all methods)
+    method : {'none', 'discard', 'softclip', 'Tikh', 'wng'}
+        Method used for regularization/amplitude limitation
+        (none, discard, hardclip, Tikhonov, White Noise Gain).
+
+    Returns
+    -------
+    dn : numpy.ndarray
+        Regularized values.
+    hn : array_like
+
+    """
 
     idx = np.abs(dn) > a0
 
@@ -161,6 +182,20 @@ def regularize(dn, a0, method):
 
 
 def diagonal_mode_mat(bk):
+    """Diagonal matrix of radial coefficients for all modes/wavenumbers.
+
+    Parameters
+    ----------
+    bk : (M, N+1) numpy.ndarray
+        Vector containing values for all wavenumbers :math:`M` and modes up to
+        order :math:`N`
+
+    Returns
+    -------
+    Bk : (M, (N+1)**2, (N+1)**2) numpy.ndarray
+        Multidimensional array containing diagnonal matrices with input 
+        vector on main diagonal.
+    """
     bk = _repeat_n_m(bk)
     if len(bk.shape) == 1:
         bk = bk[np.newaxis, :]
