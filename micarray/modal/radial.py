@@ -193,10 +193,10 @@ def diagonal_mode_mat(bk):
     Returns
     -------
     Bk : (M, (N+1)**2, (N+1)**2) numpy.ndarray
-        Multidimensional array containing diagnonal matrices with input 
+        Multidimensional array containing diagnonal matrices with input
         vector on main diagonal.
     """
-    bk = _repeat_n_m(bk)
+    bk = repeat_n_m(bk)
     if len(bk.shape) == 1:
         bk = bk[np.newaxis, :]
     K, N = bk.shape
@@ -206,6 +206,24 @@ def diagonal_mode_mat(bk):
     return np.squeeze(Bk)
 
 
-def _repeat_n_m(v):
+def repeat_n_m(v):
+    """Repeat elements in a vector .
+
+    Returns a vector with the elements of the vector *v* repeated *n* times,
+    where *n* denotes the position of the element in *v*. The function can
+    be used to order the coefficients in the vector according to the order of
+    spherical harmonics. If *v* is a matrix, it is treated as a stack of
+    vectors residing in the last index and broadcast accordingly.
+
+    Parameters
+    ----------
+    v : (,N+1) numpy.ndarray
+        Input vector or stack of input vectors.
+
+    Returns
+    -------
+     : (,(N+1)**2) numpy.ndarray
+        Vector or stack of vectors containing repetated values.
+    """
     krlist = [np.tile(v, (2*i+1, 1)).T for i, v in enumerate(v.T.tolist())]
     return np.squeeze(np.concatenate(krlist, axis=-1))

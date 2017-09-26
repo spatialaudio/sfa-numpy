@@ -60,3 +60,34 @@ def asarray_1d(a, **kwargs):
     elif result.ndim > 1:
         raise ValueError("array must be one-dimensional")
     return result
+
+
+def matdiagmul(A, b):
+    """Efficient multiplication of  matrix and diagonal matrix .
+
+    Returns the multiplication of a matrix *A* and a diagonal matrix. The
+    diagonal matrix is given by the vector *b* containing its elements on
+    the main diagonal.  If *b* is a matrix, it is treated as a stack of vectors
+    residing in the last index and broadcast accordingly.
+
+    Parameters
+    ----------
+    A : array_like
+        Input matrix.
+    b : array_like
+        Main diagonal elements or stack of main diagonal elements.
+
+    Returns
+    -------
+    array_like
+        Result of matrix multiplication.
+    """
+    if len(b.shape) == 1:
+        b = b[np.newaxis, :]
+    K, N = b.shape
+    M, N = A.shape
+
+    C = np.zeros([K, M, N], dtype=A.dtype)
+    for k in range(K):
+        C[k, :, :] = A * b[k, :]
+    return C
