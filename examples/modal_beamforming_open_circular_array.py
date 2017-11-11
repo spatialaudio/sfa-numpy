@@ -21,7 +21,7 @@ Psi_p = micarray.modal.angular.cht_matrix(N, pol, weights)
 # get circular harmonics matrix for a source ensemble of azimuthal plane wave
 Psi_q = micarray.modal.angular.cht_matrix(N, pol_pwd)
 # get radial filters
-Bn = micarray.modal.radial.circular_pw(N, k, r, setup='rigid')
+Bn = micarray.modal.radial.circular_pw(N, k, r, setup='open')
 Dn, _ = micarray.modal.radial.regularize(1/Bn, 100, 'softclip')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Dn)
 
