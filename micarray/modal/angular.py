@@ -90,6 +90,46 @@ def Legendre_matrix(N, ctheta):
 
     return Lmn
 
+def cht_matrix(N, pol, weights=None):
+    r"""Matrix of circular harmonics up to order N for given angles.
+
+    Computes a matrix of circular harmonics up to order :math:`N`
+    for the given angles/grid.
+
+    .. math::
+		\Psi = \left[ \begin{array}{ccccccc}
+		e^{-i N \varphi[0]} & \cdots & e^{-i \varphi[0]} & 1 & e^{i \varphi[0]} & e^{i 2 \varphi[0]} & \cdots & e^{i N \varphi[0]} \\
+		e^{-i N \varphi[1]} & \cdots & e^{-i \varphi[1]} & 1 & e^{i \varphi[1]} & e^{i 2 \varphi[1]} & \cdots & e^{i N \varphi[1]} \\
+		\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+		e^{-i N \varphi[Q-1]}, \cdots, e^{-i \varphi[Q-1]}, 1, e^{i \varphi[Q-1]}, e^{i 2 \varphi[Q-1]}, \cdots, e^{i N \varphi[Q-1]} \\
+		\end{array} \right]
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    pol : (Q,) array_like
+        Polar angle.
+    weights : (Q,) array_like, optional
+        Weights.
+
+    Returns
+    -------
+    Psi : (2N+1, Q) numpy.ndarray
+        Matrix of spherical harmonics.
+    """
+    pol = util.asarray_1d(pol)
+    if pol.ndim == 0:
+        Q = 1
+    else:
+        Q = len(pol)
+    if weights is None:
+        weights = np.ones(Q)
+    Psi = np.zeros([(2*N+1), Q], dtype=complex)
+    order = np.arange(-N, N+1)
+    for i, n in enumerate(order):
+        Psi[i, :] = np.exp(1j * n * pol)
+    return Psi
 
 def grid_equal_angle(n):
     """Equi-angular sampling points on a sphere.
@@ -153,3 +193,23 @@ def grid_gauss(n):
     weights = np.repeat(weights, 2*n+2)
     weights *= np.pi / (n+1)      # sum(weights) == 4pi
     return azi, elev, weights
+
+
+def grid_equal_polar_angle(M, phi0=0):
+    """Equi-angular sampling points on a circle.
+
+    Parameters
+    ----------
+    M : int
+        Number of microphones.
+	phi0 : float
+		Angular shift
+
+    Returns
+    -------
+    pol : array_like
+        Polar angle.
+    weights : array_like
+        Weights.
+    """
+    return np.linspace(0, 2*np.pi, num=M, endpoint=False) + phi0, 2*np.pi/M * np.ones(M)
