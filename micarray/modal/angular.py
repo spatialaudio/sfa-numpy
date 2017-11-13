@@ -90,6 +90,7 @@ def Legendre_matrix(N, ctheta):
 
     return Lmn
 
+
 def cht_matrix(N, pol, weights=None):
     r"""Matrix of circular harmonics up to order N for given angles.
 
@@ -97,12 +98,12 @@ def cht_matrix(N, pol, weights=None):
     for the given angles/grid.
 
     .. math::
-		\Psi = \left[ \begin{array}{ccccccc}
-		e^{-i N \varphi[0]} & \cdots & e^{-i \varphi[0]} & 1 & e^{i \varphi[0]} & e^{i 2 \varphi[0]} & \cdots & e^{i N \varphi[0]} \\
-		e^{-i N \varphi[1]} & \cdots & e^{-i \varphi[1]} & 1 & e^{i \varphi[1]} & e^{i 2 \varphi[1]} & \cdots & e^{i N \varphi[1]} \\
-		\vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-		e^{-i N \varphi[Q-1]}, \cdots, e^{-i \varphi[Q-1]}, 1, e^{i \varphi[Q-1]}, e^{i 2 \varphi[Q-1]}, \cdots, e^{i N \varphi[Q-1]} \\
-		\end{array} \right]
+        \Psi = \left[ \begin{array}{ccccccc}
+        e^{-i N \varphi[0]} & \cdots & e^{-i \varphi[0]} & 1 & e^{i \varphi[0]} & e^{i 2 \varphi[0]} & \cdots & e^{i N \varphi[0]} \\
+        e^{-i N \varphi[1]} & \cdots & e^{-i \varphi[1]} & 1 & e^{i \varphi[1]} & e^{i 2 \varphi[1]} & \cdots & e^{i N \varphi[1]} \\
+        \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+        e^{-i N \varphi[Q-1]}, \cdots, e^{-i \varphi[Q-1]}, 1, e^{i \varphi[Q-1]}, e^{i 2 \varphi[Q-1]}, \cdots, e^{i N \varphi[Q-1]} \\
+        \end{array} \right]
 
     Parameters
     ----------
@@ -130,6 +131,7 @@ def cht_matrix(N, pol, weights=None):
     for i, n in enumerate(order):
         Psi[i, :] = np.exp(1j * n * pol)
     return Psi
+
 
 def grid_equal_angle(n):
     """Equi-angular sampling points on a sphere.
@@ -202,8 +204,8 @@ def grid_equal_polar_angle(M, phi0=0):
     ----------
     M : int
         Number of microphones.
-	phi0 : float
-		Angular shift
+    phi0 : float
+        Angular shift
 
     Returns
     -------
