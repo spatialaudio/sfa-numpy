@@ -260,15 +260,15 @@ def circular_pw(N, k, r, setup):
 
     bn = circ_radial_weights(N, kr, setup)
     for i, x in enumerate(kr):
-        bn[i, :] = bn[i, :] * 4*np.pi * (1j)**n
+        bn[i, :] = bn[i, :] * (1j)**(-n)
     return bn
 
 
 def circular_ls(N, k, r, rs, setup):
-    r"""Radial coefficients for a point source.
+    r"""Radial coefficients for a line source.
 
-    Computes the radial component of the spherical harmonics expansion of a
-    point source impinging on a spherical array.
+    Computes the radial component of the circular harmonics expansion of a
+    line source impinging on a circular array.
 
     .. math::
 
@@ -296,10 +296,10 @@ def circular_ls(N, k, r, rs, setup):
     krs = k*rs
     n = np.arange(N+1)
 
-    bn = weights(N, k*r, setup)
+    bn = circ_radial_weights(N, k*r, setup)
     for i, x in enumerate(krs):
         Hn = special.hankel2(n, x)
-        bn[i, :] = bn[i, :] * -1j/4 * (-1j) * Hn
+        bn[i, :] = bn[i, :] * -1j/4 * Hn
     return bn
 
 
