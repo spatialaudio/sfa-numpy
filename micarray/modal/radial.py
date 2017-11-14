@@ -395,4 +395,4 @@ def mirror_vec(v):
     """
     if len(v.shape) == 1:
         v = v[np.newaxis, :]
-    return np.concatenate((np.fliplr(v[:, 1:]), v), axis=1)
+    return np.concatenate((v, v[:, :0:-1]), axis=1)

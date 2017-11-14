@@ -99,10 +99,10 @@ def cht_matrix(N, pol, weights=None):
 
     .. math::
         \Psi = \left[ \begin{array}{ccccccc}
-        e^{-i N \varphi[0]} & \cdots & e^{-i \varphi[0]} & 1 & e^{i \varphi[0]} & e^{i 2 \varphi[0]} & \cdots & e^{i N \varphi[0]} \\
-        e^{-i N \varphi[1]} & \cdots & e^{-i \varphi[1]} & 1 & e^{i \varphi[1]} & e^{i 2 \varphi[1]} & \cdots & e^{i N \varphi[1]} \\
+        1 & \cdots & e^{i\varphi[0]} & e^{iN\varphi[0]} & e^{-iN\varphi[0]} & \cdots & e^{-i\varphi[0]} \\
+        1 & \cdots & e^{i\varphi[1]} & e^{iN\varphi[1]} & e^{-iN\varphi[1]} & \cdots & e^{-i\varphi[1]} \\
         \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-        e^{-i N \varphi[Q-1]}, \cdots, e^{-i \varphi[Q-1]}, 1, e^{i \varphi[Q-1]}, e^{i 2 \varphi[Q-1]}, \cdots, e^{i N \varphi[Q-1]} \\
+        1, \cdots, & e^{i\varphi[Q-1]} & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]} \\
         \end{array} \right]
 
     Parameters
@@ -127,9 +127,9 @@ def cht_matrix(N, pol, weights=None):
     if weights is None:
         weights = np.ones(Q)
     Psi = np.zeros([(2*N+1), Q], dtype=complex)
-    order = np.arange(-N, N+1)
+    order = np.roll(np.arange(-N, N+1), -N)
     for i, n in enumerate(order):
-        Psi[i, :] = np.exp(1j * n * pol)
+        Psi[i, :] = weights * np.exp(1j * n * pol)
     return Psi
 
 
@@ -214,4 +214,6 @@ def grid_equal_polar_angle(M, phi0=0):
     weights : array_like
         Weights.
     """
-    return np.linspace(0, 2*np.pi, num=M, endpoint=False) + phi0, 2*np.pi/M * np.ones(M)
+    pol = np.linspace(0, 2*np.pi, num=M, endpoint=False) + phi0
+    weights = 1/M * np.ones(M)
+    return pol, weights
