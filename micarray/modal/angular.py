@@ -102,7 +102,7 @@ def cht_matrix(N, pol, weights=None):
         1 & \cdots & e^{i\varphi[0]} & e^{iN\varphi[0]} & e^{-iN\varphi[0]} & \cdots & e^{-i\varphi[0]} \\
         1 & \cdots & e^{i\varphi[1]} & e^{iN\varphi[1]} & e^{-iN\varphi[1]} & \cdots & e^{-i\varphi[1]} \\
         \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-        1, \cdots, & e^{i\varphi[Q-1]} & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]} \\
+        1 & \cdots & e^{i\varphi[Q-1]} & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]}
         \end{array} \right]
 
     Parameters
@@ -117,7 +117,7 @@ def cht_matrix(N, pol, weights=None):
     Returns
     -------
     Psi : (2N+1, Q) numpy.ndarray
-        Matrix of spherical harmonics.
+        Matrix of circular harmonics.
     """
     pol = util.asarray_1d(pol)
     if pol.ndim == 0:
