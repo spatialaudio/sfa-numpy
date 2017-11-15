@@ -99,10 +99,10 @@ def cht_matrix(N, pol, weights=None):
 
     .. math::
         \Psi = \left[ \begin{array}{ccccccc}
-        1 & \cdots & e^{i\varphi[0]} & e^{iN\varphi[0]} & e^{-iN\varphi[0]} & \cdots & e^{-i\varphi[0]} \\
-        1 & \cdots & e^{i\varphi[1]} & e^{iN\varphi[1]} & e^{-iN\varphi[1]} & \cdots & e^{-i\varphi[1]} \\
+        1 & e^{i\varphi[0]} & \cdots & e^{iN\varphi[0]} & e^{-iN\varphi[0]} & \cdots & e^{-i\varphi[0]} \\
+        1 & e^{i\varphi[1]} & \cdots & e^{iN\varphi[1]} & e^{-iN\varphi[1]} & \cdots & e^{-i\varphi[1]} \\
         \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
-        1 & \cdots & e^{i\varphi[Q-1]} & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]}
+        1 & e^{i\varphi[Q-1]} & \cdots & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]}
         \end{array} \right]
 
     Parameters

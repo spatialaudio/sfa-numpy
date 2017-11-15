@@ -376,12 +376,11 @@ def circ_diagonal_mode_mat(bk):
 def mirror_vec(v):
     """Mirror elements in a vector.
 
-    Returns a vector with symmetric elements which are the elements of *v*.
-    The first len(v)-1 elements are the flip of *v[1:]* while the last len(v)
-    elements are the same as *v*. The function can be used to order the
-    coefficients in the vector according to the order of circular harmonics.
-    If *v* is a matrix, it is treated as a stack of vectors residing in the
-    last index and broadcast accordingly.
+    Returns a vector of length *2*len(v)-1* with symmetric elements.
+    The first *len(v)* elements are the same as *v* and the last *len(v)-1*
+    elements are *v[:0:-1]*. The function can be used to order the circular
+    harmonic coefficients. If *v* is a matrix, it is treated as a stack of
+    vectors residing in the last index and broadcast accordingly.
 
     Parameters
     ----------
