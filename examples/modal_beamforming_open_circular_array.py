@@ -26,7 +26,7 @@ Dn, _ = micarray.modal.radial.regularize(1/Bn, 100, 'softclip')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Dn)
 
 # compute microphone signals for an incident broad-band plane wave
-p = np.exp(-1j * k[:, np.newaxis]*r * np.cos(pol - pw_angle))
+p = np.exp(1j * k[:, np.newaxis]*r * np.cos(pol - pw_angle))
 # compute plane wave decomposition
 A_pwd = np.matmul(np.matmul(np.conj(Psi_q.T), D), Psi_p)
 q_pwd = np.squeeze(np.matmul(A_pwd, np.expand_dims(p, 2)))

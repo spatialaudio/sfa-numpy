@@ -260,7 +260,7 @@ def circular_pw(N, k, r, setup):
 
     bn = circ_radial_weights(N, kr, setup)
     for i, x in enumerate(kr):
-        bn[i, :] = bn[i, :] * (1j)**(-n)
+        bn[i, :] = bn[i, :] * (1j)**(n)
     return bn
 
 
