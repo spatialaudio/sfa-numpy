@@ -227,3 +227,171 @@ def repeat_n_m(v):
     """
     krlist = [np.tile(v, (2*i+1, 1)).T for i, v in enumerate(v.T.tolist())]
     return np.squeeze(np.concatenate(krlist, axis=-1))
+
+
+def circular_pw(N, k, r, setup):
+    r"""Radial coefficients for a plane wave.
+
+    Computes the radial component of the circular harmonics expansion of a
+    plane wave impinging on a circular array.
+
+    .. math::
+
+        \mathring{P}_n(k) = i^{-n} b_n(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : (M,) array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    bn : (M, N+1) numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    kr = util.asarray_1d(k*r)
+    n = np.arange(N+1)
+
+    bn = circ_radial_weights(N, kr, setup)
+    for i, x in enumerate(kr):
+        bn[i, :] = bn[i, :] * (1j)**(n)
+    return bn
+
+
+def circular_ls(N, k, r, rs, setup):
+    r"""Radial coefficients for a line source.
+
+    Computes the radial component of the circular harmonics expansion of a
+    line source impinging on a circular array.
+
+    .. math::
+
+        \mathring{P}_n(k) = \frac{-i}{4} H_n^{(2)}(k r_s) b_n(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    k : (M,) array_like
+        Wavenumber.
+    r : float
+        Radius of microphone array.
+    rs : float
+        Distance of source.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    bn : (M, N+1) numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+    """
+    k = util.asarray_1d(k)
+    krs = k*rs
+    n = np.arange(N+1)
+
+    bn = circ_radial_weights(N, k*r, setup)
+    for i, x in enumerate(krs):
+        Hn = special.hankel2(n, x)
+        bn[i, :] = bn[i, :] * -1j/4 * Hn
+    return bn
+
+
+def circ_radial_weights(N, kr, setup):
+    r"""Radial weighing functions.
+
+    Computes the radial weighting functions for diferent array types
+
+    For instance for an rigid array
+
+    .. math::
+
+        b_n(kr) = J_n(kr) - \frac{J_n^\prime(kr)}{H_n^{(2)\prime}(kr)}H_n^{(2)}(kr)
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    kr : (M,) array_like
+        Wavenumber * radius.
+    setup : {'open', 'card', 'rigid'}
+        Array configuration (open, cardioids, rigid).
+
+    Returns
+    -------
+    bn : (M, N+1) numpy.ndarray
+        Radial weights for all orders up to N and the given wavenumbers.
+
+    """
+    n = np.arange(N+1)
+    Bns = np.zeros((len(kr), N+1), dtype=complex)
+    for i, x in enumerate(kr):
+        Jn = special.jv(n, x)
+        if setup == 'open':
+            bn = Jn
+        elif setup == 'card':
+            bn = Jn - 1j * special.jvp(n, x, n=1)
+        elif setup == 'rigid':
+            Jnd = special.jvp(n, x, n=1)
+            Hn = special.hankel2(n, x)
+            Hnd = special.h2vp(n, x)
+            bn = Jn - Jnd/Hnd*Hn
+        else:
+            raise ValueError('setup must be either: open, card or rigid')
+        Bns[i, :] = bn
+    return np.squeeze(Bns)
+
+
+def circ_diagonal_mode_mat(bk):
+    """Diagonal matrix of radial coefficients for all modes/wavenumbers.
+
+    Parameters
+    ----------
+    bk : (M, N+1) numpy.ndarray
+        Vector containing values for all wavenumbers :math:`M` and modes up to
+        order :math:`N`
+
+    Returns
+    -------
+    Bk : (M, 2*N+1, 2*N+1) numpy.ndarray
+        Multidimensional array containing diagnonal matrices with input
+        vector on main diagonal.
+    """
+    bk = mirror_vec(bk)
+    if len(bk.shape) == 1:
+        bk = bk[np.newaxis, :]
+    K, N = bk.shape
+    Bk = np.zeros([K, N, N], dtype=complex)
+    for k in range(K):
+        Bk[k, :, :] = np.diag(bk[k, :])
+    return np.squeeze(Bk)
+
+
+def mirror_vec(v):
+    """Mirror elements in a vector.
+
+    Returns a vector of length *2*len(v)-1* with symmetric elements.
+    The first *len(v)* elements are the same as *v* and the last *len(v)-1*
+    elements are *v[:0:-1]*. The function can be used to order the circular
+    harmonic coefficients. If *v* is a matrix, it is treated as a stack of
+    vectors residing in the last index and broadcast accordingly.
+
+    Parameters
+    ----------
+    v : (, N+1) numpy.ndarray
+        Input vector of stack of input vectors
+
+    Returns
+    -------
+     : (, 2*N+1) numpy.ndarray
+        Vector of stack of vectors containing mirrored elements
+    """
+    if len(v.shape) == 1:
+        v = v[np.newaxis, :]
+    return np.concatenate((v, v[:, :0:-1]), axis=1)
