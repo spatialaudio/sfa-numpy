@@ -13,10 +13,9 @@ pw_angle = 1 * np.pi  # incidence angle of plane wave
 pol_pwd = np.linspace(0, 2*np.pi, 180, endpoint=False)  # angles for plane wave decomposition
 k = np.linspace(0.1, 20, 100)  # wavenumber vector
 r = 1  # radius of array
-M = 61 # number of microphones
 
-# get uniform grid (microphone positions) of number M
-pol, weights = micarray.modal.angular.grid_equal_polar_angle(M)
+# get uniform grid (microphone positions) of order N
+pol, weights = micarray.modal.angular.grid_equal_polar_angle(N)
 
 # pressure on the surface of a rigid cylinder for an incident plane wave
 bn = micarray.modal.radial.circular_pw(Nsf, k, r, setup='rigid')

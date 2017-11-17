@@ -197,15 +197,13 @@ def grid_gauss(n):
     return azi, elev, weights
 
 
-def grid_equal_polar_angle(M, phi0=0):
+def grid_equal_polar_angle(n):
     """Equi-angular sampling points on a circle.
 
     Parameters
     ----------
-    M : int
-        Number of microphones.
-    phi0 : float
-        Angular shift
+    n : int
+        Maximum order
 
     Returns
     -------
@@ -214,6 +212,7 @@ def grid_equal_polar_angle(M, phi0=0):
     weights : array_like
         Weights.
     """
-    pol = np.linspace(0, 2*np.pi, num=M, endpoint=False) + phi0
-    weights = 1/M * np.ones(M)
+    num_mic = 2*n+1
+    pol = np.linspace(0, 2*np.pi, num=num_mic, endpoint=False)
+    weights = 1/num_mic * np.ones(num_mic)
     return pol, weights
