@@ -256,7 +256,7 @@ def circular_pw(N, k, r, setup):
         Radial weights for all orders up to N and the given wavenumbers.
     """
     kr = util.asarray_1d(k*r)
-    n = np.arange(N+1)
+    n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, kr, setup)
     for i, x in enumerate(kr):
@@ -294,7 +294,7 @@ def circular_ls(N, k, r, rs, setup):
     """
     k = util.asarray_1d(k)
     krs = k*rs
-    n = np.arange(N+1)
+    n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, k*r, setup)
     for i, x in enumerate(krs):
@@ -345,6 +345,7 @@ def circ_radial_weights(N, kr, setup):
         else:
             raise ValueError('setup must be either: open, card or rigid')
         Bns[i, :] = bn
+    Bns = np.concatenate((Bns, (Bns*(-1)**np.arange(N+1))[:, :0:-1]), axis=-1)
     return np.squeeze(Bns)
 
 
@@ -363,7 +364,6 @@ def circ_diagonal_mode_mat(bk):
         Multidimensional array containing diagnonal matrices with input
         vector on main diagonal.
     """
-    bk = mirror_vec(bk)
     if len(bk.shape) == 1:
         bk = bk[np.newaxis, :]
     K, N = bk.shape
