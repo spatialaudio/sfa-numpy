@@ -34,9 +34,7 @@ def spherical_pw(N, k, r, setup):
     n = np.arange(N+1)
 
     bn = weights(N, kr, setup)
-    for i, x in enumerate(kr):
-        bn[i, :] = bn[i, :] * 4*np.pi * (1j)**n
-    return bn
+    return 4*np.pi * (1j)**n * bn
 
 
 def spherical_ps(N, k, r, rs, setup):
@@ -72,11 +70,14 @@ def spherical_ps(N, k, r, rs, setup):
     n = np.arange(N+1)
 
     bn = weights(N, k*r, setup)
+    if len(k) == 1:
+        bn = bn[np.newaxis, :]
+
     for i, x in enumerate(krs):
         hn = special.spherical_jn(n, x) - 1j * special.spherical_yn(n, x)
         bn[i, :] = bn[i, :] * 4*np.pi * (-1j) * hn * k[i]
 
-    return bn
+    return np.squeeze(bn)
 
 
 def weights(N, kr, setup):
@@ -106,6 +107,7 @@ def weights(N, kr, setup):
         Radial weights for all orders up to N and the given wavenumbers.
 
     """
+    kr = util.asarray_1d(kr)
     n = np.arange(N+1)
     bns = np.zeros((len(kr), N+1), dtype=complex)
     for i, x in enumerate(kr):
@@ -259,9 +261,7 @@ def circular_pw(N, k, r, setup):
     n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, kr, setup)
-    for i, x in enumerate(kr):
-        bn[i, :] = bn[i, :] * (1j)**(n)
-    return bn
+    return (1j)**(n) * bn
 
 
 def circular_ls(N, k, r, rs, setup):
@@ -297,10 +297,12 @@ def circular_ls(N, k, r, rs, setup):
     n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, k*r, setup)
+    if len(k) == 1:
+        bn = bn[np.newaxis, :]
     for i, x in enumerate(krs):
         Hn = special.hankel2(n, x)
         bn[i, :] = bn[i, :] * -1j/4 * Hn
-    return bn
+    return np.squeeze(bn)
 
 
 def circ_radial_weights(N, kr, setup):
@@ -329,6 +331,7 @@ def circ_radial_weights(N, kr, setup):
         Radial weights for all orders up to N and the given wavenumbers.
 
     """
+    kr = util.asarray_1d(kr)
     n = np.arange(N+1)
     Bns = np.zeros((len(kr), N+1), dtype=complex)
     for i, x in enumerate(kr):
