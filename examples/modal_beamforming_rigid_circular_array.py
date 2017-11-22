@@ -1,6 +1,6 @@
 """
     Compute the plane wave decomposition for an incident broadband plane wave
-    on an rigid circular array using a modal beamformer of finite order.
+    on a rigid circular array using a modal beamformer of finite order.
 """
 
 import numpy as np
@@ -11,7 +11,7 @@ from micarray.util import db
 Nsf = 50  # order of the incident sound field
 N = 30  # order of modal beamformer/microphone array
 pw_angle = 1 * np.pi  # incidence angle of plane wave
-pol_pwd = np.linspace(0, 2*np.pi, 180, endpoint=False)  # angles for plane wave decomposition
+pol_pwd = np.linspace(0, 2*np.pi, 180, endpoint=False)  # angles for PWD
 k = np.linspace(0.1, 20, 100)  # wavenumber vector
 r = 1  # radius of array
 
