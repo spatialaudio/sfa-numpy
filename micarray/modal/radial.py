@@ -239,7 +239,7 @@ def circular_pw(N, k, r, setup):
 
     .. math::
 
-        \mathring{P}_n(k) = i^{-n} b_n(kr)
+        \mathring{P}_n(k) = i^n b_n(kr)
 
     Parameters
     ----------
@@ -254,14 +254,14 @@ def circular_pw(N, k, r, setup):
 
     Returns
     -------
-    bn : (M, N+1) numpy.ndarray
+    bn : (M, 2*N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
     """
     kr = util.asarray_1d(k*r)
-    n = np.arange(N+1)
+    n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, kr, setup)
-    return (1j)**(n) * bn
+    return 1j**n * bn
 
 
 def circular_ls(N, k, r, rs, setup):
@@ -289,20 +289,20 @@ def circular_ls(N, k, r, rs, setup):
 
     Returns
     -------
-    bn : (M, N+1) numpy.ndarray
+    bn : (M, 2*N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
     """
     k = util.asarray_1d(k)
     krs = k*rs
-    n = np.arange(N+1)
+    n = np.roll(np.arange(-N, N+1), -N)
 
     bn = circ_radial_weights(N, k*r, setup)
     if len(k) == 1:
         bn = bn[np.newaxis, :]
     for i, x in enumerate(krs):
         Hn = special.hankel2(n, x)
-        bn[i, :] = bn[i, :] * -1j/4 * Hn
-    return np.squeeze(bn)
+        bn[i, :] = bn[i, :] * Hn
+    return -1j/4 * np.squeeze(bn)
 
 
 def circ_radial_weights(N, kr, setup):
@@ -327,7 +327,7 @@ def circ_radial_weights(N, kr, setup):
 
     Returns
     -------
-    bn : (M, N+1) numpy.ndarray
+    bn : (M, 2*N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
 
     """
@@ -348,6 +348,7 @@ def circ_radial_weights(N, kr, setup):
         else:
             raise ValueError('setup must be either: open, card or rigid')
         Bns[i, :] = bn
+    Bns = np.concatenate((Bns, (Bns*(-1)**np.arange(N+1))[:, :0:-1]), axis=-1)
     return np.squeeze(Bns)
 
 
@@ -366,7 +367,6 @@ def circ_diagonal_mode_mat(bk):
         Multidimensional array containing diagnonal matrices with input
         vector on main diagonal.
     """
-    bk = mirror_vec(bk)
     if len(bk.shape) == 1:
         bk = bk[np.newaxis, :]
     K, N = bk.shape
@@ -374,27 +374,3 @@ def circ_diagonal_mode_mat(bk):
     for k in range(K):
         Bk[k, :, :] = np.diag(bk[k, :])
     return np.squeeze(Bk)
-
-
-def mirror_vec(v):
-    """Mirror elements in a vector.
-
-    Returns a vector of length *2*len(v)-1* with symmetric elements.
-    The first *len(v)* elements are the same as *v* and the last *len(v)-1*
-    elements are *v[:0:-1]*. The function can be used to order the circular
-    harmonic coefficients. If *v* is a matrix, it is treated as a stack of
-    vectors residing in the last index and broadcast accordingly.
-
-    Parameters
-    ----------
-    v : (, N+1) numpy.ndarray
-        Input vector of stack of input vectors
-
-    Returns
-    -------
-     : (, 2*N+1) numpy.ndarray
-        Vector of stack of vectors containing mirrored elements
-    """
-    if len(v.shape) == 1:
-        v = v[np.newaxis, :]
-    return np.concatenate((v, v[:, :0:-1]), axis=1)
