@@ -23,7 +23,7 @@ Bn = micarray.modal.radial.circular_pw(Nsf, k, r, setup='rigid')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Bn)
 Psi_p = micarray.modal.angular.cht_matrix(Nsf, pol)
 Psi_pw = micarray.modal.angular.cht_matrix(Nsf, pw_angle)
-p = np.matmul(np.matmul(np.conj(Psi_p.T), D), Psi_pw)
+p = np.matmul(np.matmul(Psi_p, D), np.conj(Psi_pw.T))
 p = np.squeeze(p)
 
 # plane wave decomposition using modal beamforming
@@ -32,7 +32,7 @@ Psi_q = micarray.modal.angular.cht_matrix(N, pol_pwd)
 Bn = micarray.modal.radial.circular_pw(N, k, r, setup='rigid')
 Dn, _ = micarray.modal.radial.regularize(1/Bn, 100, 'softclip')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Dn)
-A_pwd = np.matmul(np.matmul(np.conj(Psi_q.T), D), Psi_p)
+A_pwd = np.matmul(np.matmul(Psi_q, D), np.conj(Psi_p.T))
 q_pwd = np.squeeze(np.matmul(A_pwd, np.expand_dims(p, 2)))
 q_pwd_t = np.fft.fftshift(np.fft.irfft(q_pwd, axis=0), axes=0)
 
