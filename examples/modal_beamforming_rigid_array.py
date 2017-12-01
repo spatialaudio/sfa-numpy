@@ -10,7 +10,7 @@ import micarray
 N = 20  # order of modal beamformer/microphone array
 azi_pw = np.pi  # incidence angle of plane wave
 azi_pwd = np.linspace(0, 2*np.pi, 91, endpoint=False)  # angles for plane wave decomposition
-k = np.linspace(0.1, 20, 100)  # wavenumber
+k = np.linspace(0, 20, 100)  # wavenumber
 r = 1  # radius of array
 
 
@@ -32,6 +32,7 @@ azi_pwd = np.linspace(0, 2*np.pi, 91, endpoint=False)
 Y_q = micarray.modal.angular.sht_matrix(N, azi_pwd, np.pi/2)
 # get radial filters
 bn = micarray.modal.radial.spherical_pw(N, k, r, setup='rigid')
+bn = micarray.modal.radial.replace_zeros(bn, k*r)
 dn, _ = micarray.modal.radial.regularize(1/bn, 100, 'softclip')
 D = micarray.modal.radial.diagonal_mode_mat(dn)
 # compute the PWD

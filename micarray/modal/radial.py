@@ -117,14 +117,64 @@ def weights(N, kr, setup):
         elif setup == 'card':
             bn = jn - 1j * special.spherical_jn(n, x, derivative=True)
         elif setup == 'rigid':
-            jnd = special.spherical_jn(n, x, derivative=True)
-            hn = jn - 1j * special.spherical_yn(n, x)
-            hnd = jnd - 1j * special.spherical_yn(n, x, derivative=True)
-            bn = jn - jnd/hnd*hn
+            if x == 0:
+                # hn(x)/hn'(x) -> 0 for x -> 0
+                bn = jn
+            else:
+                jnd = special.spherical_jn(n, x, derivative=True)
+                hn = jn - 1j * special.spherical_yn(n, x)
+                hnd = jnd - 1j * special.spherical_yn(n, x, derivative=True)
+                bn = jn - jnd/hnd*hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
         bns[i, :] = bn
     return np.squeeze(bns)
+
+
+def replace_zeros(A, kr):
+    """
+    Replace zero entries A[i, j] == 0 with A[l, j] != 0,
+    where kr[l] is (the wavenumber) nearest to kr[i].
+
+    (This function may be used to fix "forbidden frequencies" in radial 
+    filters before inversion.)
+
+    Parameters
+    ----------
+    A : (K, N) ndarray
+    kr : (K,) array_like
+
+    Returns
+    -------
+    (K, N) ndarray
+
+    """
+    kr = util.asarray_1d(kr)
+
+    if len(A.shape) == 1 and A.shape[0] == len(kr):
+        # single column is fine.
+        A = A[:, np.newaxis]
+    if A.shape[0] != len(kr):
+        raise ValueError("A and kr must have same length > 1.")
+
+    kr, idx, inv_idx = np.unique(kr, True, True)
+    A = A[idx, :]
+    zeros = np.abs(A) < 1e-300
+
+    for i, j in zip(*np.where(zeros)):
+        # for each zero value...
+        kr_tmp = kr.astype(float)
+        l = i
+        while zeros[l, j]:
+            # ...try to find replacement value
+            kr_tmp[l] = np.inf
+            l = np.argmin(np.abs(kr_tmp - kr[i]))
+            if np.isinf(kr_tmp[l]):
+                raise ValueError("Could not replace zero value in A.")
+        A[i, j] = A[l, j]
+
+    A = A[inv_idx, :]
+    return np.squeeze(A)
 
 
 def regularize(dn, a0, method):
@@ -176,10 +226,7 @@ def regularize(dn, a0, method):
     else:
         raise ValueError('method must be either: none, ' +
                          'discard, hardclip, softclip, Tikh or wng')
-    dn[0, 1:] = dn[1, 1:]
     dn = dn * hn
-    if not np.isfinite(dn).all():
-        raise UserWarning("Filter not finite")
     return dn, hn
 
 
@@ -341,10 +388,14 @@ def circ_radial_weights(N, kr, setup):
         elif setup == 'card':
             bn = Jn - 1j * special.jvp(n, x, n=1)
         elif setup == 'rigid':
-            Jnd = special.jvp(n, x, n=1)
-            Hn = special.hankel2(n, x)
-            Hnd = special.h2vp(n, x)
-            bn = Jn - Jnd/Hnd*Hn
+            if x == 0:
+                # Hn(x)/Hn'(x) -> 0 for x -> 0
+                bn = Jn
+            else:
+                Jnd = special.jvp(n, x, n=1)
+                Hn = special.hankel2(n, x)
+                Hnd = special.h2vp(n, x)
+                bn = Jn - Jnd/Hnd*Hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
         Bns[i, :] = bn

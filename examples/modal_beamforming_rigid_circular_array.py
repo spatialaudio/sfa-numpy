@@ -12,7 +12,7 @@ Nsf = 50  # order of the incident sound field
 N = 30  # order of modal beamformer/microphone array
 pw_angle = 1 * np.pi  # incidence angle of plane wave
 pol_pwd = np.linspace(0, 2*np.pi, 180, endpoint=False)  # angles for PWD
-k = np.linspace(0.1, 20, 100)  # wavenumber vector
+k = np.linspace(0, 20, 100)  # wavenumber vector
 r = 1  # radius of array
 
 # get uniform grid (microphone positions) of order N
@@ -30,6 +30,7 @@ p = np.squeeze(p)
 Psi_p = micarray.modal.angular.cht_matrix(N, pol, weights)
 Psi_q = micarray.modal.angular.cht_matrix(N, pol_pwd)
 Bn = micarray.modal.radial.circular_pw(N, k, r, setup='rigid')
+Bn = micarray.modal.radial.replace_zeros(Bn, k*r)
 Dn, _ = micarray.modal.radial.regularize(1/Bn, 100, 'softclip')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Dn)
 A_pwd = np.matmul(np.matmul(np.conj(Psi_q.T), D), Psi_p)
@@ -43,11 +44,11 @@ plt.colorbar()
 plt.xlabel(r'$kr$')
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (frequency domain)')
-plt.savefig('modal_circ_open_beamformer_pwd_fd.png')
+plt.savefig('modal_circ_rigid_beamformer_pwd_fd.png')
 
 plt.figure()
 plt.pcolormesh(range(2*len(k)-2), pol_pwd/np.pi, db(q_pwd_t.T), vmin=-40)
 plt.colorbar()
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (time domain)')
-plt.savefig('modal_circ_open_beamformer_pwd_td.png')
+plt.savefig('modal_circ_rigid_beamformer_pwd_td.png')

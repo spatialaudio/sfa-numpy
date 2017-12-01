@@ -12,7 +12,7 @@ Nsf = 50  # order of the incident sound field
 N = 30  # order of modal beamformer/microphone array
 pw_angle = 1.23 * np.pi  # incidence angle of plane wave
 pol_pwd = np.linspace(0, 2*np.pi, 180, endpoint=False)  # angles for plane wave decomposition
-k = np.linspace(0.1, 20, 100)  # wavenumber vector
+k = np.linspace(0, 20, 100)  # wavenumber vector
 r = 1  # radius of array
 
 # get uniform grid (microphone positions) of order N
@@ -31,6 +31,7 @@ p = np.squeeze(p)
 
 # plane wave decomposition using modal beamforming
 Bn = micarray.modal.radial.circular_pw(N, k, r, setup='open')
+Bn = micarray.modal.radial.replace_zeros(Bn, k*r)
 Dn, _ = micarray.modal.radial.regularize(1/Bn, 3000, 'softclip')
 D = micarray.modal.radial.circ_diagonal_mode_mat(Dn)
 Psi_p = micarray.modal.angular.cht_matrix(N, pol, weights)
