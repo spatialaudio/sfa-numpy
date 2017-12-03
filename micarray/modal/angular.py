@@ -197,6 +197,36 @@ def grid_gauss(n):
     return azi, elev, weights
 
 
+def grid_generalized_spiral(M, C=3.6):
+    """Generalized spiral points on sphere.
+
+    According to (cf. Rakhmanov 1994, sec. 5).
+
+    Parameters
+    ----------
+    M : int
+        Number of point on the sphere.
+
+    Returns
+    -------
+    azi : array_like
+        Azimuth.
+    elev : array_like
+        Elevation.
+    weights : array_like
+        Quadrature weights.
+
+    """
+    k = np.arange(1, M+1)
+    h = -1 + 2*(k-1)/(M-1)
+    elev = np.arccos(h)
+    azi = np.zeros(M)
+    for n in k[:-1]:
+        azi[n] = azi[n-1] + C/np.sqrt(M)*1/np.sqrt(1-h[n]**2)
+    weights = np.ones(M)
+    return azi, elev, weights
+
+
 def grid_equal_polar_angle(n):
     """Equi-angular sampling points on a circle.
 
