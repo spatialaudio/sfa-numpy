@@ -221,7 +221,7 @@ def grid_generalized_spiral(M, C=3.6):
     h = -1 + 2*(k-1)/(M-1)
     elev = np.arccos(h)
     azi = np.zeros(M)
-    for n in k[:-1]:
+    for n in k[:-2]:
         azi[n] = azi[n-1] + C/np.sqrt(M)*1/np.sqrt(1-h[n]**2)
     weights = np.ones(M)
     return azi, elev, weights
