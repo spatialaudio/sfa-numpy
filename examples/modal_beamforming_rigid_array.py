@@ -22,7 +22,7 @@ bn = micarray.modal.radial.spherical_pw(N, k, r, setup='rigid')
 D = micarray.modal.radial.diagonal_mode_mat(bn)
 Y_p = micarray.modal.angular.sht_matrix(N, azi, elev)
 Y_pw = micarray.modal.angular.sht_matrix(N, azi_pw, np.pi/2)
-p = np.matmul(np.matmul(np.conj(Y_pw.T), D), Y_p)
+p = np.matmul(np.matmul(Y_p, D), np.conj(Y_pw.T))
 p = np.squeeze(p)
 
 # plane wave decomposition using modal beamforming
@@ -35,7 +35,7 @@ bn = micarray.modal.radial.spherical_pw(N, k, r, setup='rigid')
 dn, _ = micarray.modal.radial.regularize(1/bn, 100, 'softclip')
 D = micarray.modal.radial.diagonal_mode_mat(dn)
 # compute the PWD
-A_mb = np.matmul(np.matmul(np.conj(Y_q.T), D), Y_p)
+A_mb = np.matmul(np.matmul(Y_q, D), np.conj(Y_p.T))
 q_mb = np.squeeze(np.matmul(A_mb, np.expand_dims(p, 2)))
 q_mb_t = np.fft.fftshift(np.fft.irfft(q_mb, axis=0), axes=0)
 
