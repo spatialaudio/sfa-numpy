@@ -7,6 +7,9 @@ microphone arrays.
 
 Source code and issue tracker:
     https://github.com/spatialaudio/sfa-numpy
+    
+Documentation:
+    http://sfa-numpy.readthedocs.io
 
 License:
     MIT -- see the file ``LICENSE`` for details.
