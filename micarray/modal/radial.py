@@ -2,8 +2,38 @@ from __future__ import division
 import numpy as np
 from scipy import special
 from .. import util
+from functools import wraps
+from warnings import warn
 
 
+def replace_zeros_of_radial_function_decorator(f):
+    """Apply replace_zeros_of_radial_function() to output of function f.
+
+    Also add argument flag 'replace_zeros' to f.
+
+    CAVEAT:
+    replace_zeros_of_radial_function() needs wavenumbers k or kr.
+    These are taken from argument list of f,  either by key or using the 2nd
+    positional argument !
+    """
+    @wraps(f)
+    def wrapper(*args, replace_zeros=True, **kwargs):
+        if 'kr' in kwargs:
+            kr = kwargs['kr']
+        elif 'k' in kwargs:
+            # The exact values in kr do not matter, only order is important.
+            # So it's okay to use k instead.
+            kr = kwargs['k']
+        else:
+            kr = args[1]  # ATTENTION: hinges on positional argument order!
+        if replace_zeros:
+            return replace_zeros_of_radial_function(f(*args, **kwargs), kr)
+        else:
+            return f(*args, **kwargs)
+    return wrapper
+
+
+@replace_zeros_of_radial_function_decorator
 def spherical_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -37,6 +67,7 @@ def spherical_pw(N, k, r, setup):
     return 4*np.pi * (1j)**n * bn
 
 
+@replace_zeros_of_radial_function_decorator
 def spherical_ps(N, k, r, rs, setup):
     r"""Radial coefficients for a point source.
 
@@ -131,12 +162,13 @@ def weights(N, kr, setup):
     return np.squeeze(bns)
 
 
-def replace_zeros(A, kr):
+def replace_zeros_of_radial_function(A, kr):
     """
-    Replace zero entries A[i, j] == 0 with A[l, j] != 0,
+    Replace zero entries A[i, j] == 0 with A[l, j] != 0.
+
     where kr[l] is (the wavenumber) nearest to kr[i].
 
-    (This function may be used to fix "forbidden frequencies" in radial 
+    (This function may be used to fix "forbidden frequencies" in radial
     filters before inversion.)
 
     Parameters
@@ -152,10 +184,14 @@ def replace_zeros(A, kr):
     kr = util.asarray_1d(kr)
 
     if len(A.shape) == 1 and A.shape[0] == len(kr):
-        # single column is fine.
+        # single column (mode) is fine.
         A = A[:, np.newaxis]
+    elif len(A.shape) == 1 and len(kr) == 1:
+        # single wavenumber is also fine.
+        A = A[np.newaxis, :]
     if A.shape[0] != len(kr):
-        raise ValueError("A and kr must have same length > 1.")
+        raise ValueError("A and kr must have same len > 1,"
+                         " but have {} and {}".format(A.shape[0], len(kr)))
 
     kr, idx, inv_idx = np.unique(kr, True, True)
     A = A[idx, :]
@@ -278,6 +314,7 @@ def repeat_n_m(v):
     return np.squeeze(np.concatenate(krlist, axis=-1))
 
 
+@replace_zeros_of_radial_function_decorator
 def circular_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -311,6 +348,7 @@ def circular_pw(N, k, r, setup):
     return 1j**n * bn
 
 
+@replace_zeros_of_radial_function_decorator
 def circular_ls(N, k, r, rs, setup):
     r"""Radial coefficients for a line source.
 
