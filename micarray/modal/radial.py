@@ -6,7 +6,7 @@ from functools import wraps
 from warnings import warn
 
 
-def replace_zeros_of_radial_function_decorator(f):
+def _replace_zeros_of_radial_function_decorator(f):
     """Apply replace_zeros_of_radial_function() to output of function f.
 
     Also add argument flag 'replace_zeros' to f.
@@ -33,7 +33,7 @@ def replace_zeros_of_radial_function_decorator(f):
     return wrapper
 
 
-@replace_zeros_of_radial_function_decorator
+@_replace_zeros_of_radial_function_decorator
 def spherical_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -67,7 +67,7 @@ def spherical_pw(N, k, r, setup):
     return 4*np.pi * (1j)**n * bn
 
 
-@replace_zeros_of_radial_function_decorator
+@_replace_zeros_of_radial_function_decorator
 def spherical_ps(N, k, r, rs, setup):
     r"""Radial coefficients for a point source.
 
@@ -314,7 +314,7 @@ def repeat_n_m(v):
     return np.squeeze(np.concatenate(krlist, axis=-1))
 
 
-@replace_zeros_of_radial_function_decorator
+@_replace_zeros_of_radial_function_decorator
 def circular_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -348,7 +348,7 @@ def circular_pw(N, k, r, setup):
     return 1j**n * bn
 
 
-@replace_zeros_of_radial_function_decorator
+@_replace_zeros_of_radial_function_decorator
 def circular_ls(N, k, r, rs, setup):
     r"""Radial coefficients for a line source.
 
