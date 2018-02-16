@@ -176,7 +176,7 @@ def regularize(dn, a0, method):
     else:
         raise ValueError('method must be either: none, ' +
                          'discard, hardclip, softclip, Tikh or wng')
-    dn[0, 1:] = dn[1, 1:]
+#    dn[0, 1:] = dn[1, 1:]
     dn = dn * hn
     if not np.isfinite(dn).all():
         raise UserWarning("Filter not finite")
