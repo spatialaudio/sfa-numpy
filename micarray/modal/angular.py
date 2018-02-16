@@ -12,7 +12,7 @@ def sht_matrix(N, azi, elev, weights=None):
 
     .. math::
 
-        \mathbf{Y} = \left[ \begin{array}{cccccc} 
+        \mathbf{Y} = \left[ \begin{array}{cccccc}
         Y_0^0(\theta[0], \phi[0]) & Y_1^{-1}(\theta[0], \phi[0]) & Y_1^0(\theta[0], \phi[0]) & Y_1^1(\theta[0], \phi[0]) & \dots & Y_N^N(\theta[0], \phi[0])  \\
         Y_0^0(\theta[1], \phi[1]) & Y_1^{-1}(\theta[1], \phi[1]) & Y_1^0(\theta[1], \phi[1]) & Y_1^1(\theta[1], \phi[1]) & \dots & Y_N^N(\theta[1], \phi[1])  \\
         \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
@@ -24,6 +24,10 @@ def sht_matrix(N, azi, elev, weights=None):
     .. math::
 
         Y_n^m(\theta, \phi) = \sqrt{\frac{2n + 1}{4 \pi} \frac{(n-m)!}{(n+m)!}} P_n^m(\cos \theta) e^{i m \phi}
+
+
+    (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform (or synthesis)
+    matrix in examples and documentation.)
 
     Parameters
     ----------
@@ -38,22 +42,23 @@ def sht_matrix(N, azi, elev, weights=None):
 
     Returns
     -------
-    Ymn : ((N+1)**2, Q) numpy.ndarray
+    Ymn : (Q, (N+1)**2) numpy.ndarray
         Matrix of spherical harmonics.
+
     """
     azi = util.asarray_1d(azi)
     elev = util.asarray_1d(elev)
     if azi.ndim == 0:
-        M = 1
+        Q = 1
     else:
-        M = len(azi)
+        Q = len(azi)
     if weights is None:
-        weights = np.ones(M)
-    Ymn = np.zeros([(N+1)**2, M], dtype=complex)
+        weights = np.ones(Q)
+    Ymn = np.zeros([Q, (N+1)**2], dtype=complex)
     i = 0
     for n in range(N+1):
         for m in range(-n, n+1):
-            Ymn[i, :] = weights * special.sph_harm(m, n, azi, elev)
+            Ymn[:, i] = weights * special.sph_harm(m, n, azi, elev)
             i += 1
     return Ymn
 
@@ -105,6 +110,10 @@ def cht_matrix(N, pol, weights=None):
         1 & e^{i\varphi[Q-1]} & \cdots & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]}
         \end{array} \right]
 
+    (Note: :math:`\Psi` is interpreted as the inverse transform (or synthesis)
+    matrix in examples and documentation.)
+
+
     Parameters
     ----------
     N : int
@@ -116,8 +125,9 @@ def cht_matrix(N, pol, weights=None):
 
     Returns
     -------
-    Psi : (2N+1, Q) numpy.ndarray
+    Psi : (Q, 2N+1) numpy.ndarray
         Matrix of circular harmonics.
+
     """
     pol = util.asarray_1d(pol)
     if pol.ndim == 0:
@@ -126,10 +136,10 @@ def cht_matrix(N, pol, weights=None):
         Q = len(pol)
     if weights is None:
         weights = np.ones(Q)
-    Psi = np.zeros([(2*N+1), Q], dtype=complex)
+    Psi = np.zeros([Q, (2*N+1)], dtype=complex)
     order = np.roll(np.arange(-N, N+1), -N)
     for i, n in enumerate(order):
-        Psi[i, :] = weights * np.exp(1j * n * pol)
+        Psi[:, i] = weights * np.exp(1j * n * pol)
     return Psi
 
 

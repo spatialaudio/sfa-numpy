@@ -29,14 +29,13 @@ Y_p = micarray.modal.angular.sht_matrix(N, azi, elev, weights)
 Y_q = micarray.modal.angular.sht_matrix(N, azi_pwd, np.pi/2)
 # get radial filters
 bn = micarray.modal.radial.spherical_pw(N, k, r, setup='open')
-bn = micarray.modal.radial.replace_zeros(bn, k*r)
 dn, _ = micarray.modal.radial.regularize(1/bn, 100, 'softclip')
 D = micarray.modal.radial.diagonal_mode_mat(dn)
 
 # compute microphone signals for an incident broad-band plane wave
 p = np.exp(1j * k[:, np.newaxis]*r * dot_product_sph((azi, elev), pw_angle))
 # compute the plane wave dcomposition
-A_pwd = np.matmul(np.matmul(np.conj(Y_q.T), D), Y_p)
+A_pwd = np.matmul(np.matmul(Y_q, D), np.conj(Y_p.T))
 q_pwd = np.squeeze(np.matmul(A_pwd, np.expand_dims(p, 2)))
 q_pwd_t = np.fft.fftshift(np.fft.irfft(q_pwd, axis=0), axes=0)
 
@@ -47,11 +46,11 @@ plt.colorbar()
 plt.xlabel(r'$kr$')
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (frequency domain)')
-plt.savefig('modal_open_beamformer_pwd_fd.png')
+plt.savefig('modal_beamforming_open_spherical_array_fd.png')
 
 plt.figure()
 plt.pcolormesh(range(2*len(k)-2), azi_pwd/np.pi, 20*np.log10(np.abs(q_pwd_t.T)), vmin=-40)
 plt.colorbar()
 plt.ylabel(r'$\phi / \pi$')
 plt.title('Plane wave docomposition by modal beamformer (time domain)')
-plt.savefig('modal_open_beamformer_pwd_td.png')
+plt.savefig('modal_beamforming_open_spherical_array_td.png')
