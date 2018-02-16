@@ -10,7 +10,7 @@ import micarray
 N = 20  # order of modal beamformer/microphone array
 pw_angle = (np.pi, np.pi/2)  # incidence angle of plane wave
 azi_pwd = np.linspace(0, 2*np.pi, 91, endpoint=False)  # angles for plane wave decomposition
-k = np.linspace(0.1, 20, 100)  # wavenumber vector
+k = np.linspace(0, 20, 100)  # wavenumber vector
 r = 1  # radius of array
 
 
