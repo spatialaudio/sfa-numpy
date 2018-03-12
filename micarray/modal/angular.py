@@ -2,6 +2,11 @@ from __future__ import division
 import numpy as np
 from scipy import special
 from .. import util
+from warnings import warn
+try:
+    import quadpy  # only for grid_lebedev()
+except ImportError:
+    pass
 
 
 def sht_matrix(N, azi, elev, weights=None):
@@ -226,3 +231,47 @@ def grid_equal_polar_angle(n):
     pol = np.linspace(0, 2*np.pi, num=num_mic, endpoint=False)
     weights = 1/num_mic * np.ones(num_mic)
     return pol, weights
+
+
+def grid_lebedev(n):
+    """Lebedev sampling points on sphere.
+
+    (Maximum n is 65. We use what is available in quadpy, some n may not be
+    tight, others produce negative weights.
+
+    Parameters
+    ----------
+    n : int
+        Maximum order.
+
+    Returns
+    -------
+    azi : array_like
+        Azimuth.
+    elev : array_like
+        Elevation.
+    weights : array_like
+        Quadrature weights.
+
+    """
+    def available_quadrature(d):
+        """Get smallest availabe quadrature of of degree d.
+
+        see:
+        https://people.sc.fsu.edu/~jburkardt/datasets/sphere_lebedev_rule/sphere_lebedev_rule.html
+        """
+        l = list(range(1, 32, 2)) + list(range(35, 132, 6))
+        matches = [x for x in l if x >= d]
+        return matches[0]
+
+    if n > 65:
+        raise ValueError("Maximum available Lebedev grid order is 65. "
+                         "(requested: {})".format(n))
+
+    # this needs https://pypi.python.org/pypi/quadpy
+    q = quadpy.sphere.Lebedev(degree=available_quadrature(2*n))
+    if np.any(q.weights < 0):
+        warn("Lebedev grid of order {} has negative weights.".format(n))
+    azi = q.azimuthal_polar[:, 0]
+    elev = q.azimuthal_polar[:, 1]
+    return azi, elev, q.weights
