@@ -274,4 +274,4 @@ def grid_lebedev(n):
         warn("Lebedev grid of order {} has negative weights.".format(n))
     azi = q.azimuthal_polar[:, 0]
     elev = q.azimuthal_polar[:, 1]
-    return azi, elev, q.weights
+    return azi, elev, 4*np.pi*q.weights
