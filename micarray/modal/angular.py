@@ -9,7 +9,7 @@ except ImportError:
     pass
 
 
-def sht_matrix(N, azi, elev, weights=None):
+def sht_matrix(N, azi, colat, weights=None):
     r"""Matrix of spherical harmonics up to order N for given angles.
 
     Computes a matrix of spherical harmonics up to order :math:`N`
@@ -40,8 +40,8 @@ def sht_matrix(N, azi, elev, weights=None):
         Maximum order.
     azi : (Q,) array_like
         Azimuth.
-    elev : (Q,) array_like
-        Elevation.
+    colat : (Q,) array_like
+        Colatitude.
     weights : (Q,) array_like, optional
         Quadrature weights.
 
@@ -52,7 +52,7 @@ def sht_matrix(N, azi, elev, weights=None):
 
     """
     azi = util.asarray_1d(azi)
-    elev = util.asarray_1d(elev)
+    colat = util.asarray_1d(colat)
     if azi.ndim == 0:
         Q = 1
     else:
@@ -63,7 +63,7 @@ def sht_matrix(N, azi, elev, weights=None):
     i = 0
     for n in range(N+1):
         for m in range(-n, n+1):
-            Ymn[:, i] = weights * special.sph_harm(m, n, azi, elev)
+            Ymn[:, i] = weights * special.sph_harm(m, n, azi, colat)
             i += 1
     return Ymn
 
@@ -162,25 +162,25 @@ def grid_equal_angle(n):
     -------
     azi : array_like
         Azimuth.
-    elev : array_like
-        Elevation.
+    colat : array_like
+        Colatitude.
     weights : array_like
         Quadrature weights.
     """
     azi = np.linspace(0, 2*np.pi, 2*n+2, endpoint=False)
-    elev, d_elev = np.linspace(0, np.pi, 2*n+2, endpoint=False, retstep=True)
-    elev += d_elev/2
+    colat, d_colat = np.linspace(0, np.pi, 2*n+2, endpoint=False, retstep=True)
+    colat += d_colat/2
 
-    weights = np.zeros_like(elev)
+    weights = np.zeros_like(colat)
     p = np.arange(1, 2*n+2, 2)
-    for i, theta in enumerate(elev):
+    for i, theta in enumerate(colat):
         weights[i] = 2*np.pi/(n+1) * np.sin(theta) * np.sum(np.sin(p*theta)/p)
 
     azi = np.tile(azi, 2*n+2)
-    elev = np.repeat(elev, 2*n+2)
+    colat = np.repeat(colat, 2*n+2)
     weights = np.repeat(weights, 2*n+2)
     weights /= n+1     # sum(weights) == 4pi
-    return azi, elev, weights
+    return azi, colat, weights
 
 
 def grid_gauss(n):
@@ -197,19 +197,19 @@ def grid_gauss(n):
     -------
     azi : array_like
         Azimuth.
-    elev : array_like
-        Elevation.
+    colat : array_like
+        Colatitude.
     weights : array_like
         Quadrature weights.
     """
     azi = np.linspace(0, 2*np.pi, 2*n+2, endpoint=False)
     x, weights = np.polynomial.legendre.leggauss(n+1)
-    elev = np.arccos(x)
+    colat = np.arccos(x)
     azi = np.tile(azi, n+1)
-    elev = np.repeat(elev, 2*n+2)
+    colat = np.repeat(colat, 2*n+2)
     weights = np.repeat(weights, 2*n+2)
     weights *= np.pi / (n+1)      # sum(weights) == 4pi
-    return azi, elev, weights
+    return azi, colat, weights
 
 
 def grid_equal_polar_angle(n):
@@ -248,8 +248,8 @@ def grid_lebedev(n):
     -------
     azi : array_like
         Azimuth.
-    elev : array_like
-        Elevation.
+    colat : array_like
+        Colatitude.
     weights : array_like
         Quadrature weights.
 
@@ -273,5 +273,5 @@ def grid_lebedev(n):
     if np.any(q.weights < 0):
         warn("Lebedev grid of order {} has negative weights.".format(n))
     azi = q.azimuthal_polar[:, 0]
-    elev = q.azimuthal_polar[:, 1]
-    return azi, elev, 4*np.pi*q.weights
+    colat = q.azimuthal_polar[:, 1]
+    return azi, colat, 4*np.pi*q.weights

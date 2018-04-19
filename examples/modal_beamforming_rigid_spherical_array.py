@@ -15,18 +15,18 @@ r = 1  # radius of array
 
 
 # get quadrature grid (microphone positions) of order N
-azi, elev, weights = micarray.modal.angular.grid_gauss(N)
+azi, colat, weights = micarray.modal.angular.grid_gauss(N)
 
 # pressure on the surface of a rigid sphere for an incident plane wave
 bn = micarray.modal.radial.spherical_pw(N, k, r, setup='rigid')
 D = micarray.modal.radial.diagonal_mode_mat(bn)
-Y_p = micarray.modal.angular.sht_matrix(N, azi, elev)
+Y_p = micarray.modal.angular.sht_matrix(N, azi, colat)
 Y_pw = micarray.modal.angular.sht_matrix(N, azi_pw, np.pi/2)
 p = np.matmul(np.matmul(Y_p, D), np.conj(Y_pw.T))
 p = np.squeeze(p)
 
 # plane wave decomposition using modal beamforming
-Y_p = micarray.modal.angular.sht_matrix(N, azi, elev, weights)
+Y_p = micarray.modal.angular.sht_matrix(N, azi, colat, weights)
 # get SHT matrix for a source ensemble of azimuthal plane waves
 azi_pwd = np.linspace(0, 2*np.pi, 91, endpoint=False)
 Y_q = micarray.modal.angular.sht_matrix(N, azi_pwd, np.pi/2)
