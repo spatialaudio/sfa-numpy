@@ -22,9 +22,9 @@ def dot_product_sph(v, u):
 
 
 # get quadrature grid (microphone positions) of order N
-azi, elev, weights = micarray.modal.angular.grid_gauss(N)
+azi, colat, weights = micarray.modal.angular.grid_gauss(N)
 # get spherical harmonics matrix for sensors
-Y_p = micarray.modal.angular.sht_matrix(N, azi, elev, weights)
+Y_p = micarray.modal.angular.sht_matrix(N, azi, colat, weights)
 # get spherical harmonics matrix for a source ensemble of azimuthal plane waves
 Y_q = micarray.modal.angular.sht_matrix(N, azi_pwd, np.pi/2)
 # get radial filters
@@ -33,7 +33,7 @@ dn, _ = micarray.modal.radial.regularize(1/bn, 100, 'softclip')
 D = micarray.modal.radial.diagonal_mode_mat(dn)
 
 # compute microphone signals for an incident broad-band plane wave
-p = np.exp(1j * k[:, np.newaxis]*r * dot_product_sph((azi, elev), pw_angle))
+p = np.exp(1j * k[:, np.newaxis]*r * dot_product_sph((azi, colat), pw_angle))
 # compute the plane wave dcomposition
 A_pwd = np.matmul(np.matmul(Y_q, D), np.conj(Y_p.T))
 q_pwd = np.squeeze(np.matmul(A_pwd, np.expand_dims(p, 2)))
