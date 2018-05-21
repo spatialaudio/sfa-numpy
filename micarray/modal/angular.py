@@ -2,6 +2,11 @@ from __future__ import division
 import numpy as np
 from scipy import special
 from .. import util
+from warnings import warn
+try:
+    import quadpy  # only for grid_lebedev()
+except ImportError:
+    pass
 
 
 def sht_matrix(N, azi, elev, weights=None):
@@ -12,7 +17,7 @@ def sht_matrix(N, azi, elev, weights=None):
 
     .. math::
 
-        \mathbf{Y} = \left[ \begin{array}{cccccc} 
+        \mathbf{Y} = \left[ \begin{array}{cccccc}
         Y_0^0(\theta[0], \phi[0]) & Y_1^{-1}(\theta[0], \phi[0]) & Y_1^0(\theta[0], \phi[0]) & Y_1^1(\theta[0], \phi[0]) & \dots & Y_N^N(\theta[0], \phi[0])  \\
         Y_0^0(\theta[1], \phi[1]) & Y_1^{-1}(\theta[1], \phi[1]) & Y_1^0(\theta[1], \phi[1]) & Y_1^1(\theta[1], \phi[1]) & \dots & Y_N^N(\theta[1], \phi[1])  \\
         \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
@@ -24,6 +29,10 @@ def sht_matrix(N, azi, elev, weights=None):
     .. math::
 
         Y_n^m(\theta, \phi) = \sqrt{\frac{2n + 1}{4 \pi} \frac{(n-m)!}{(n+m)!}} P_n^m(\cos \theta) e^{i m \phi}
+
+
+    (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform (or synthesis)
+    matrix in examples and documentation.)
 
     Parameters
     ----------
@@ -38,22 +47,23 @@ def sht_matrix(N, azi, elev, weights=None):
 
     Returns
     -------
-    Ymn : ((N+1)**2, Q) numpy.ndarray
+    Ymn : (Q, (N+1)**2) numpy.ndarray
         Matrix of spherical harmonics.
+
     """
     azi = util.asarray_1d(azi)
     elev = util.asarray_1d(elev)
     if azi.ndim == 0:
-        M = 1
+        Q = 1
     else:
-        M = len(azi)
+        Q = len(azi)
     if weights is None:
-        weights = np.ones(M)
-    Ymn = np.zeros([(N+1)**2, M], dtype=complex)
+        weights = np.ones(Q)
+    Ymn = np.zeros([Q, (N+1)**2], dtype=complex)
     i = 0
     for n in range(N+1):
         for m in range(-n, n+1):
-            Ymn[i, :] = weights * special.sph_harm(m, n, azi, elev)
+            Ymn[:, i] = weights * special.sph_harm(m, n, azi, elev)
             i += 1
     return Ymn
 
@@ -105,6 +115,10 @@ def cht_matrix(N, pol, weights=None):
         1 & e^{i\varphi[Q-1]} & \cdots & e^{iN\varphi[Q-1]} & e^{-iN\varphi[Q-1]} & \cdots & e^{-i\varphi[Q-1]}
         \end{array} \right]
 
+    (Note: :math:`\Psi` is interpreted as the inverse transform (or synthesis)
+    matrix in examples and documentation.)
+
+
     Parameters
     ----------
     N : int
@@ -116,8 +130,9 @@ def cht_matrix(N, pol, weights=None):
 
     Returns
     -------
-    Psi : (2N+1, Q) numpy.ndarray
+    Psi : (Q, 2N+1) numpy.ndarray
         Matrix of circular harmonics.
+
     """
     pol = util.asarray_1d(pol)
     if pol.ndim == 0:
@@ -126,10 +141,10 @@ def cht_matrix(N, pol, weights=None):
         Q = len(pol)
     if weights is None:
         weights = np.ones(Q)
-    Psi = np.zeros([(2*N+1), Q], dtype=complex)
+    Psi = np.zeros([Q, (2*N+1)], dtype=complex)
     order = np.roll(np.arange(-N, N+1), -N)
     for i, n in enumerate(order):
-        Psi[i, :] = weights * np.exp(1j * n * pol)
+        Psi[:, i] = weights * np.exp(1j * n * pol)
     return Psi
 
 
@@ -246,3 +261,47 @@ def grid_equal_polar_angle(n):
     pol = np.linspace(0, 2*np.pi, num=num_mic, endpoint=False)
     weights = 1/num_mic * np.ones(num_mic)
     return pol, weights
+
+
+def grid_lebedev(n):
+    """Lebedev sampling points on sphere.
+
+    (Maximum n is 65. We use what is available in quadpy, some n may not be
+    tight, others produce negative weights.
+
+    Parameters
+    ----------
+    n : int
+        Maximum order.
+
+    Returns
+    -------
+    azi : array_like
+        Azimuth.
+    elev : array_like
+        Elevation.
+    weights : array_like
+        Quadrature weights.
+
+    """
+    def available_quadrature(d):
+        """Get smallest availabe quadrature of of degree d.
+
+        see:
+        https://people.sc.fsu.edu/~jburkardt/datasets/sphere_lebedev_rule/sphere_lebedev_rule.html
+        """
+        l = list(range(1, 32, 2)) + list(range(35, 132, 6))
+        matches = [x for x in l if x >= d]
+        return matches[0]
+
+    if n > 65:
+        raise ValueError("Maximum available Lebedev grid order is 65. "
+                         "(requested: {})".format(n))
+
+    # this needs https://pypi.python.org/pypi/quadpy
+    q = quadpy.sphere.Lebedev(degree=available_quadrature(2*n))
+    if np.any(q.weights < 0):
+        warn("Lebedev grid of order {} has negative weights.".format(n))
+    azi = q.azimuthal_polar[:, 0]
+    elev = q.azimuthal_polar[:, 1]
+    return azi, elev, 4*np.pi*q.weights

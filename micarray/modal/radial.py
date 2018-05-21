@@ -2,8 +2,38 @@ from __future__ import division
 import numpy as np
 from scipy import special
 from .. import util
+from functools import wraps
+from warnings import warn
 
 
+def _replace_zeros_of_radial_function_decorator(f):
+    """Apply replace_zeros_of_radial_function() to output of function f.
+
+    Also add argument flag 'replace_zeros' to f.
+
+    CAVEAT:
+    replace_zeros_of_radial_function() needs wavenumbers k or kr.
+    These are taken from argument list of f,  either by key or using the 2nd
+    positional argument !
+    """
+    @wraps(f)
+    def wrapper(*args, replace_zeros=True, **kwargs):
+        if 'kr' in kwargs:
+            kr = kwargs['kr']
+        elif 'k' in kwargs:
+            # The exact values in kr do not matter, only order is important.
+            # So it's okay to use k instead.
+            kr = kwargs['k']
+        else:
+            kr = args[1]  # ATTENTION: hinges on positional argument order!
+        if replace_zeros:
+            return replace_zeros_of_radial_function(f(*args, **kwargs), kr)
+        else:
+            return f(*args, **kwargs)
+    return wrapper
+
+
+@_replace_zeros_of_radial_function_decorator
 def spherical_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -37,6 +67,7 @@ def spherical_pw(N, k, r, setup):
     return 4*np.pi * (1j)**n * bn
 
 
+@_replace_zeros_of_radial_function_decorator
 def spherical_ps(N, k, r, rs, setup):
     r"""Radial coefficients for a point source.
 
@@ -117,14 +148,69 @@ def weights(N, kr, setup):
         elif setup == 'card':
             bn = jn - 1j * special.spherical_jn(n, x, derivative=True)
         elif setup == 'rigid':
-            jnd = special.spherical_jn(n, x, derivative=True)
-            hn = jn - 1j * special.spherical_yn(n, x)
-            hnd = jnd - 1j * special.spherical_yn(n, x, derivative=True)
-            bn = jn - jnd/hnd*hn
+            if x == 0:
+                # hn(x)/hn'(x) -> 0 for x -> 0
+                bn = jn
+            else:
+                jnd = special.spherical_jn(n, x, derivative=True)
+                hn = jn - 1j * special.spherical_yn(n, x)
+                hnd = jnd - 1j * special.spherical_yn(n, x, derivative=True)
+                bn = jn - jnd/hnd*hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
         bns[i, :] = bn
     return np.squeeze(bns)
+
+
+def replace_zeros_of_radial_function(A, kr):
+    """
+    Replace zero entries A[i, j] == 0 with A[l, j] != 0.
+
+    where kr[l] is (the wavenumber) nearest to kr[i].
+
+    (This function may be used to fix "forbidden frequencies" in radial
+    filters before inversion.)
+
+    Parameters
+    ----------
+    A : (K, N) ndarray
+    kr : (K,) array_like
+
+    Returns
+    -------
+    (K, N) ndarray
+
+    """
+    kr = util.asarray_1d(kr)
+
+    if len(A.shape) == 1 and A.shape[0] == len(kr):
+        # single column (mode) is fine.
+        A = A[:, np.newaxis]
+    elif len(A.shape) == 1 and len(kr) == 1:
+        # single wavenumber is also fine.
+        A = A[np.newaxis, :]
+    if A.shape[0] != len(kr):
+        raise ValueError("A and kr must have same len > 1,"
+                         " but have {} and {}".format(A.shape[0], len(kr)))
+
+    kr, idx, inv_idx = np.unique(kr, True, True)
+    A = A[idx, :]
+    zeros = np.abs(A) < 1e-300
+
+    for i, j in zip(*np.where(zeros)):
+        # for each zero value...
+        kr_tmp = kr.astype(float)
+        l = i
+        while zeros[l, j]:
+            # ...try to find replacement value
+            kr_tmp[l] = np.inf
+            l = np.argmin(np.abs(kr_tmp - kr[i]))
+            if np.isinf(kr_tmp[l]):
+                raise ValueError("Could not replace zero value in A.")
+        A[i, j] = A[l, j]
+
+    A = A[inv_idx, :]
+    return np.squeeze(A)
 
 
 def regularize(dn, a0, method):
@@ -176,10 +262,7 @@ def regularize(dn, a0, method):
     else:
         raise ValueError('method must be either: none, ' +
                          'discard, hardclip, softclip, Tikh or wng')
-    dn[0, 1:] = dn[1, 1:]
     dn = dn * hn
-    if not np.isfinite(dn).all():
-        raise UserWarning("Filter not finite")
     return dn, hn
 
 
@@ -231,6 +314,7 @@ def repeat_n_m(v):
     return np.squeeze(np.concatenate(krlist, axis=-1))
 
 
+@_replace_zeros_of_radial_function_decorator
 def circular_pw(N, k, r, setup):
     r"""Radial coefficients for a plane wave.
 
@@ -264,6 +348,7 @@ def circular_pw(N, k, r, setup):
     return 1j**n * bn
 
 
+@_replace_zeros_of_radial_function_decorator
 def circular_ls(N, k, r, rs, setup):
     r"""Radial coefficients for a line source.
 
@@ -341,10 +426,14 @@ def circ_radial_weights(N, kr, setup):
         elif setup == 'card':
             bn = Jn - 1j * special.jvp(n, x, n=1)
         elif setup == 'rigid':
-            Jnd = special.jvp(n, x, n=1)
-            Hn = special.hankel2(n, x)
-            Hnd = special.h2vp(n, x)
-            bn = Jn - Jnd/Hnd*Hn
+            if x == 0:
+                # Hn(x)/Hn'(x) -> 0 for x -> 0
+                bn = Jn
+            else:
+                Jnd = special.jvp(n, x, n=1)
+                Hn = special.hankel2(n, x)
+                Hnd = special.h2vp(n, x)
+                bn = Jn - Jnd/Hnd*Hn
         else:
             raise ValueError('setup must be either: open, card or rigid')
         Bns[i, :] = bn
