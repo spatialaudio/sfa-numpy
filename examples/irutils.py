@@ -64,7 +64,7 @@ def greens_point(xs, x, c=343):
 
 
 def fractional_delay(delay, signal, fs, oversample=2,
-                     fdfilt_order=11, **kwargs):
+                     fdfilt_order=11, h_lpf=None):
     """Convert delay and signal into sample shift and fractional dealy filters.
 
     Parameters
@@ -91,8 +91,10 @@ def fractional_delay(delay, signal, fs, oversample=2,
     """
     if signal.ndim == 1 and len(signal) == len(delay):
         signal = signal[:, np.newaxis]
+    if h_lpf is None:
+        h_lpf = fir_minmax(fs, oversample, filt_order=64, wpass=0.85, wstop=1,
+                           att=-100, weight=[1, 1e-5])
     shift_fd, h_fd = lagrange_fdfilter(delay, fdfilt_order, fs=oversample * fs)
-    h_lpf = fir_minmax(fs, oversample, **kwargs)
     shift_lpf = int((len(h_lpf) + 1) / 2)
     h_fd = fftconvolve(h_fd, h_lpf[np.newaxis, :])
 
