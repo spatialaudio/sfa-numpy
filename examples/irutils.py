@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import remez, fftconvolve
+from scipy.signal import remez, fftconvolve, bilinear_zpk, zpk2sos, kaiser
 from scipy.special import comb
 
 
@@ -191,3 +191,111 @@ def ir_matrix(shift, signal):
         idx = np.arange(shift[n], shift[n] + L).astype(int)
         h[n, idx] = signal[n, :]
     return overall_shift, h.T
+
+
+def bessel_poly(n):
+    """Bessel polynomial coefficients"""
+    beta = np.zeros(n + 1)  # n-th order polynomial has (n+1) coeffcieints
+    beta[n] = 1  # This is always 1!
+    for k in range(n - 1, -1, -1):  # Recurrence relation
+        beta[k] = beta[k + 1] * (2 * n - k) * (k + 1) / (n - k) / 2
+    return beta
+
+
+def derivative_bessel_poly(n):
+    """Derivative of the Bessel polynomial"""
+    gamma = bessel_poly(n + 1)
+    gamma[:-1] -= n * decrease_bessel_order_by_one(gamma)
+    return gamma
+
+
+def decrease_bessel_order_by_one(beta):
+    n = len(beta)-1
+    alpha = np.zeros(n)
+    for k in range(n - 1):
+        alpha[k] = beta[k + 1] * (k + 1) / (2 * n - k - 1)
+    alpha[-1] = 1  # This is always one
+    return alpha
+
+
+def increase_bessel_order_by_one(beta):
+    n = len(beta)
+    alpha = np.zeros(n + 1)
+    for k in range(n):
+        alpha[k + 1] = beta[k] * (2 * n - k - 1) / (k + 1)
+    alpha[0] = alpha[1]  # The first two coefficients are the same
+    return alpha
+
+
+def normalize_digital_filter_gain(s0, sinf, z0, zinf, fc, fs):
+    """Match the digital filter gain at a control frequency.
+
+    Parameters
+    ----------
+    s0 : (N,) array_like
+        zeros in the Laplace domain
+    sinf : (N,) array_like
+        polse in the Laplace domain
+    z0 : (N,) array_like
+        zeros in the z-domain
+    zinf : (N,) array_like
+        zeros in the z-domain
+    fc : float
+        Control frequency in Hz
+    fs : int
+        Sampling frequency in Hz
+
+    """
+    k = 1
+    s_c = 1j * 2 * np.pi * fc
+    z_c = 1 / np.exp(1j * 2 * np.pi * fc / fs)
+    k *= np.prod(s_c - s0) / np.prod(s_c - sinf)
+    k *= np.prod(1 - zinf * z_c) / np.prod(1 - z0 * z_c)
+    return np.abs(k)
+
+
+def pre_warp(s, fs):
+    return np.real(s) + 1j * 2 * fs * np.tan(np.imag(s) / 2 / fs)
+
+
+def radial_filter(N, r, setup, c=343, fs=44100, pzmap='mz'):
+    """Radial filter design for a plane wave.
+
+    Parameters
+    ----------
+    N : int
+        Maximum order.
+    r : float
+        Radius of microphone array
+    setup : {'rigid'}
+        Array configuration (e.g. rigid)
+    pzmap : {'mz', 'bt'}
+        Pole-zero mapping method (matched-z, bilinear transform)
+
+    Returns
+    -------
+    delay : float
+        Overall delay
+    sos : list of (L, 6) arrays
+        Second-order section filters
+    """
+    sos = []
+    if setup is 'rigid':
+        for n in range(N + 1):
+            s0 = c / r * np.zeros(n)
+            sinf = c / r * np.roots(derivative_bessel_poly(n)[::-1])
+            if pzmap is 'mz':
+                z0 = np.exp(s0 / fs)
+                zinf = np.exp(sinf / fs)
+            elif pzmap is 'bt':
+                z0, zinf, _ = bilinear_zpk(s0, pre_warp(sinf, fs), 1, fs=fs)
+                z0 = np.delete(z0, -1)
+            fc = c * n / 2 / np.pi / r
+            k = normalize_digital_filter_gain(s0, sinf,
+                                              z0, zinf, fc, fs) * c / r
+            sos.append(zpk2sos(z0, zinf, k, pairing='nearest'))
+    return -r / c, sos
+
+
+def modal_window(N, beta=0):
+    return kaiser(2 * N + 1, beta=beta)[N:]
