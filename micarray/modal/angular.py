@@ -42,6 +42,7 @@ def SH_matrix(N, azi, colat, SHtype='complex', weights=None):
         Azimuth.
     colat : (Q,) array_like
         Colatitude.
+    SHtype :  'complex' or 'real' spherical harmonics.
     weights : (Q,) array_like, optional
         Quadrature weights.
 
@@ -114,7 +115,8 @@ def Legendre_matrix(N, ctheta):
         M = len(ctheta)
     Lmn = np.zeros([N+1, M], dtype=complex)
     for n in range(N+1):
-        Lmn[n, :] = (2*n+1)/(4*np.pi) * np.polyval(special.legendre(n), ctheta)
+        Lmn[n, :] = (2*n+1)/(4*np.pi) * np.polyval(scispecial.legendre(n),
+                                                   ctheta)
 
     return Lmn
 

@@ -24,9 +24,9 @@ def dot_product_sph(v, u):
 # get quadrature grid (microphone positions) of order N
 azi, colat, weights = micarray.modal.angular.grid_gauss(N)
 # get spherical harmonics matrix for sensors
-Y_p = micarray.modal.angular.sht_matrix(N, azi, colat, weights)
+Y_p = micarray.modal.angular.SH_matrix(N, azi, colat, weights)
 # get spherical harmonics matrix for a source ensemble of azimuthal plane waves
-Y_q = micarray.modal.angular.sht_matrix(N, azi_pwd, np.pi/2)
+Y_q = micarray.modal.angular.SH_matrix(N, azi_pwd, np.pi/2)
 # get radial filters
 bn = micarray.modal.radial.spherical_pw(N, k, r, setup='open')
 dn, _ = micarray.modal.radial.regularize(1/bn, 100, 'softclip')
