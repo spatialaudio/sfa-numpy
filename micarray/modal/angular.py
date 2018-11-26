@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from scipy import special
+from scipy import special as scispecial
 from .. import util
 from warnings import warn
 try:
@@ -9,7 +9,7 @@ except ImportError:
     pass
 
 
-def sht_matrix(N, azi, colat, weights=None):
+def SH_matrix(N, azi, colat, SHtype='complex', weights=None):
     r"""Matrix of spherical harmonics up to order N for given angles.
 
     Computes a matrix of spherical harmonics up to order :math:`N`
@@ -31,13 +31,13 @@ def sht_matrix(N, azi, colat, weights=None):
         Y_n^m(\theta, \phi) = \sqrt{\frac{2n + 1}{4 \pi} \frac{(n-m)!}{(n+m)!}} P_n^m(\cos \theta) e^{i m \phi}
 
 
-    (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform (or synthesis)
-    matrix in examples and documentation.)
+    (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform
+    (or synthesis) matrix in examples and documentation.)
 
     Parameters
     ----------
     N : int
-        Maximum order.
+        Maximum SH order.
     azi : (Q,) array_like
         Azimuth.
     colat : (Q,) array_like
@@ -59,11 +59,29 @@ def sht_matrix(N, azi, colat, weights=None):
         Q = len(azi)
     if weights is None:
         weights = np.ones(Q)
-    Ymn = np.zeros([Q, (N+1)**2], dtype=complex)
+    if SHtype is 'complex':
+        Ymn = np.zeros([Q, (N+1)**2], dtype=complex)
+    elif SHtype is 'real':
+        Ymn = np.zeros([Q, (N+1)**2], dtype=float)
+    else:
+        raise ValueError('SHtype unknown.')
+
     i = 0
     for n in range(N+1):
         for m in range(-n, n+1):
-            Ymn[:, i] = weights * special.sph_harm(m, n, azi, colat)
+            if SHtype is 'complex':
+                Ymn[:, i] = weights * scispecial.sph_harm(m, n, azi, colat)
+            elif SHtype is 'real':
+                if m == 0:
+                    Ymn[:, i] = weights * np.real(
+                            scispecial.sph_harm(m, n, azi, colat))
+                if m < 0:
+                    Ymn[:, i] = weights * np.sqrt(2) * (-1) ** m * np.imag(
+                            scispecial.sph_harm(np.abs(m), n, azi, colat))
+                if m > 0:
+                    Ymn[:, i] = weights * np.sqrt(2) * (-1) ** m * np.real(
+                            scispecial.sph_harm(np.abs(m), n, azi, colat))
+
             i += 1
     return Ymn
 
