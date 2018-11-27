@@ -87,6 +87,76 @@ def SH_matrix(N, azi, colat, SHtype='complex', weights=None):
     return Ymn
 
 
+def SHT(f, N, azi, colat, SHtype, weights=None, Y_nm=None):
+    """Spherical harmonics transform of f for appropriate sampling point sets.
+
+    If f is a QxM matrix then the transform is applied to each column of f,
+    and returns the coefficients at each column of F_nm respectively.
+
+    Parameters
+    ----------
+    f :  (Q, M) numpy.ndarray
+        Spherical function evaluated at directions Q 'azi/colat'.
+    N : int
+        Maximum SH order.
+    azi : (Q,) array_like
+        Azimuth.
+    colat : (Q,) array_like
+        Colatitude.
+    SHtype :  'complex' or 'real' spherical harmonics.
+    weights : (Q,) array_like, optional
+        Quadrature weights.
+    Y_nm : (Q, (N+1)**2) numpy.ndarray, optional
+        Matrix of spherical harmonics.
+
+    Returns
+    -------
+    F_nm : (Q, M) numpy.ndarray
+        Spherical harmonics coefficients for directions Q 'azi/colat'.
+
+    """
+    if Y_nm is None:
+        Y_nm = SH_matrix(N, azi, colat, SHtype)
+    if weights is None:
+        Npoints = len(azi)
+        Y_nm_transform = (4*np.pi / Npoints) * Y_nm.conj()
+    else:
+        Y_nm_transform = Y_nm.conj()
+        # weights should sum to 4pi
+        f = np.dot(np.diag(weights), f)
+    return np.matmul(Y_nm_transform.T, f)
+
+
+def inverseSHT(F_nm, azi, colat, SHtype, Y_nm=None):
+    """Perform the inverse spherical harmonics transform.
+
+    Parameters
+    ----------
+    F_nm : (Q, M) numpy.ndarray
+        Spherical harmonics coefficients for directions Q 'azi/colat'.
+    N : int
+        Maximum SH order.
+    azi : (Q,) array_like
+        Azimuth.
+    colat : (Q,) array_like
+        Colatitude.
+    SHtype :  'complex' or 'real' spherical harmonics.
+    Y_nm : (Q, (N+1)**2) numpy.ndarray, optional
+        Matrix of spherical harmonics.
+
+    Returns
+    ----------
+    f :  (Q, M) numpy.ndarray
+        Spherical function evaluated at directions Q 'azi/colat'.
+
+    """
+    if Y_nm is None:
+        N = int(np.sqrt(F_nm.shape[0]) - 1)
+        Y_nm = SH_matrix(N, azi, colat, SHtype)
+    # perform the inverse transform up to degree N
+    return np.matmul(Y_nm, F_nm)
+
+
 def Legendre_matrix(N, ctheta):
     r"""Matrix of weighted Legendre Polynominals.
 
