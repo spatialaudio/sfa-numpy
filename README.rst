@@ -1,8 +1,6 @@
 Sound Field Analysis Toolbox for NumPy/Python
 =============================================
 
-test
-
 The Sound Field Analysis Toolbox for NumPy/Python provides implementations of
 various techniques for the analysis of sound fields and beamforming using
 microphone arrays.
