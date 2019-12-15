@@ -655,13 +655,21 @@ def tf_linph_filterbank(f_xo, f, type='butter'):
                           for n in range(N)])
         H_bpf = np.vstack([H_lpf[0], H_lpf[1:] * H_hpf[:-1], H_hpf[-1]])
         H_bpf /= np.sum(H_bpf, axis=0)
-        return H_bpf
+    elif type == 'butter_maxorder':
+        H_lpf = np.array([tf_butter(N+2, omega, omega_xo[n], btype='low')
+                          for n in range(N)])
+        H_hpf = np.array([tf_butter(N+2, omega, omega_xo[n], btype='high')
+                          for n in range(N)])
+        H_bpf = np.vstack([H_lpf[0], H_lpf[1:] * H_hpf[:-1], H_hpf[-1]])
+        H_bpf /= np.sum(H_bpf, axis=0)
     else:
         raise ValueError("Only 'type' = 'butter' is available.")
+    return H_bpf
 
 
 def tf_equalized_radial_filters(N, R, f, max_boost,
-                                modal_weight=util.maxre_sph, c=343):
+                                modal_weight=util.maxre_sph, c=343,
+                                type='butter'):
     """Tranfer functions of equalized radial filters.
 
     N : int
@@ -680,7 +688,7 @@ def tf_equalized_radial_filters(N, R, f, max_boost,
     """
     kr = 2 * np.pi * f / c * R
     f_xo = crossover_frequencies(N, R, max_boost, modal_weight)
-    H_fbank = tf_linph_filterbank(f_xo, f)
+    H_fbank = tf_linph_filterbank(f_xo, f, type)
     H_proto = np.stack([1j**(-n-1) * (kr)**2
                         * spherical_hn2(n, kr, derivative=True)
                         for n in range(N+1)])
