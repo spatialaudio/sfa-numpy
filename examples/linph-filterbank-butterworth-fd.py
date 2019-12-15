@@ -48,7 +48,7 @@ H_radial *= modal_norm(maxre_sph(N))
 # Filter-bank
 fig, ax = plt.subplots()
 for i, Hi in enumerate(H_fbank):
-    ax.semilogx(f, db(Hi), lw=3, label='${}$'.format(n), alpha=0.5)
+    ax.semilogx(f, db(Hi), lw=3, label='${}$'.format(i), alpha=0.5)
 for fx in f_xo:
     ax.semilogx(fx, 0, 'kv')
     ax.text(fx, 0, '{:0.1f}'.format(fx), rotation=30,
