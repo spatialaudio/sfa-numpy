@@ -607,7 +607,7 @@ def crossover_frequencies(N, r_array, max_boost, modal_weight=util.maxre_sph,
     """Crossover frequencies for filter-bank design.
 
     The crossover frequencies are detemined in such a way
-    that the maximum boost caused by each radial filter below 'max_boost'.
+    that the maximum boost caused by each radial filter is limited.
     The small argument approximation of the spheircal Hankel function
     normalized by the gain for each band is used for the computation.
     The returned array has '(N-1)' frequencies.
