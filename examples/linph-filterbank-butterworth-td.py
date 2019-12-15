@@ -17,7 +17,7 @@ c = 343
 fs = 44100
 Nfft = 2048
 
-R = 0.0429
+R = 0.049
 N = 5
 max_boost = 30
 f_xo = crossover_frequencies(N, R, max_boost, modal_weight=maxre_sph)
@@ -26,7 +26,7 @@ fmin, fmax, numf = 0, fs/2, int(Nfft/2)+1
 f = np.linspace(fmin, fmax, num=numf)
 f[0] = 0.5 * f[1]
 kr = 2 * np.pi * f / c * R
-H_fbank = tf_linph_filterbank(f_xo, f)
+H_fbank = tf_linph_filterbank(f_xo, f, type='butter')
 
 # Prototype radial filters
 H_proto = np.stack([1j**(-n-1) * (kr)**2

@@ -21,7 +21,7 @@ max_boost = 30
 fmin, fmax, numf = 10, 20000, 500
 f = np.logspace(np.log10(fmin), np.log10(fmax), num=numf)
 f_xo = crossover_frequencies(N, R, max_boost, modal_weight=maxre_sph)
-H_fbank = tf_linph_filterbank(f_xo, f)
+H_fbank = tf_linph_filterbank(f_xo, f, type='butter')
 
 # Look directions
 azimin, azimax, numazi = -np.pi, np.pi, 361

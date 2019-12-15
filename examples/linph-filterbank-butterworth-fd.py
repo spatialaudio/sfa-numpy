@@ -26,7 +26,7 @@ fmin, fmax, numf = 10, 20000, 2000
 f = np.logspace(np.log10(fmin), np.log10(fmax), num=numf)
 kr = 2 * np.pi * f / c * R
 
-H_fbank = tf_linph_filterbank(f_xo, f)
+H_fbank = tf_linph_filterbank(f_xo, f, type='butter')
 H_tot = np.sum(H_fbank, axis=0)
 
 # Prototpye radial filters

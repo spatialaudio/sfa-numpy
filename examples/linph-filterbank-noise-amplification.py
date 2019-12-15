@@ -32,7 +32,7 @@ H_proto = np.stack([1j**(-n-1) * (kr)**2
 for k, max_boost in enumerate(Max_boost):
     f_xo = crossover_frequencies(N, R, max_boost)
     Freq_xo[:, k] = f_xo
-    H_fbank = tf_linph_filterbank(f_xo, f)
+    H_fbank = tf_linph_filterbank(f_xo, f, type='butter')
 
     H_radial = np.zeros_like(H_proto)
     for i, Hi in enumerate(H_fbank):

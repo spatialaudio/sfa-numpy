@@ -45,7 +45,8 @@ f_xo = crossover_frequencies(array_order, R, max_boost)
 Nfft = 2048
 f_dft = np.fft.rfftfreq(Nfft, d=1/fs)
 f_dft[0] = 0.1 * f_dft[1]
-H_radial = tf_equalized_radial_filters(array_order, R, f_dft, max_boost)
+H_radial = tf_equalized_radial_filters(array_order, R, f_dft, max_boost,
+                                       type='butter')
 h_radial = np.stack([np.fft.irfft(Hi, n=Nfft, axis=-1) for Hi in H_radial])
 h_radial = np.roll(h_radial, int(Nfft/2), axis=-1)
 h_radial *= kaiser(Nfft, beta=8.6)
