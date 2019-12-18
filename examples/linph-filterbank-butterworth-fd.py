@@ -1,7 +1,7 @@
 """Linear-phase filterbank.
 
-- The target magnitude responses fo the filter-bank is designed
-  by using the zero-phase Butterworth responses.
+- The target magnitude responses for the filter-bank is designed
+  by using zero-phase Butterworth responses.
   (not to confused with typical (minphase) Butterworth filters)
 
     Reference

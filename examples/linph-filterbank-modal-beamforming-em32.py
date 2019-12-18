@@ -1,4 +1,6 @@
-"""Fourth-order Ambisonics (Eigenmike em32).
+"""Fourth-order Ambisonics micropphone Eigenmike em32.
+
+- filter bank design for Ambisonic encoding of em32 signals
 
     Reference
     ---------

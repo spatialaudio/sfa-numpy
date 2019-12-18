@@ -17,6 +17,7 @@ def norm_of_columns(A, p=2):
     -------
     array_like
         p-norm of each column of A.
+
     """
     _, N = A.shape
     return np.asarray([linalg.norm(A[:, j], ord=p) for j in range(N)])
@@ -35,7 +36,8 @@ def coherence_of_columns(A):
     Returns
     -------
     array_like
-        Mutual coherence of columns of A.
+        Mutual coherence of columns of A
+
     """
     A = np.asmatrix(A)
     _, N = A.shape
@@ -82,6 +84,7 @@ def matdiagmul(A, b):
     -------
     array_like
         Result of matrix multiplication.
+
     """
     if len(b.shape) == 1:
         b = b[np.newaxis, :]
@@ -111,7 +114,7 @@ def db(x, *, power=False):
 
 
 def double_factorial(n):
-    """Double factorial"""
+    """Double factorial."""
     if n == 0:
         return 1
     elif n == 1:
@@ -128,14 +131,17 @@ def maxre_sph(N):
     N : int
         Highest spherical harmonic order (Ambisonic order).
 
+    see
+    F. Zotter, M. Frank: "All-Round Ambisonic Panning and Decoding."
+    J. Audio Eng. Soc. 60(10):207-820, October 2012
+
     """
     theta = np.deg2rad(137.9 / (N + 1.52))
     return legendre(np.arange(N + 1), np.cos(theta))
 
 
 def point_spread(N, phi, modal_weight=maxre_sph, equalization='omni'):
-    """Directional response of a given modal weight function and
-    equalization scheme.
+    """Directional response for modal weight type and equalization scheme.
 
     Parameters
     ----------
@@ -161,7 +167,6 @@ def point_spread(N, phi, modal_weight=maxre_sph, equalization='omni'):
 
 
 def modal_norm(a, ord=2):
-    """Norm of the coefficients in the spherical harmonics domain.
-    """
+    """Norm of the coefficients in the spherical harmonics domain."""
     num_degree = 2 * np.arange(a.shape[-1]) + 1
     return np.sum(num_degree * a**ord, axis=-1)**(1/ord)

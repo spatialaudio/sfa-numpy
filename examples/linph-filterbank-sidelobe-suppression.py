@@ -1,6 +1,6 @@
 """Sidelobe suppression with different equalization schemes.
 
-- The target magnitude responses fo the filter-bank is designed
+- The target magnitude responses for the filter-bank is designed
   by using the zero-phase Butterworth responses.
   (not to confused with typical Butterworth filters)
 - modal weight: 3D max-rE

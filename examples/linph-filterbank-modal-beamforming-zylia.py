@@ -1,4 +1,6 @@
-"""Third-order Ambisonics (Zylia).
+"""Third-order Ambisonics microphone Zylia ZM-1.
+
+- filter bank design for Ambisonic encoding of ZM-1 signals
 
     Reference
     ---------
@@ -99,7 +101,7 @@ ax.set_xticks(phiticks)
 ax.set_xlabel('azimuth in deg')
 ax.set_ylabel('time in ms')
 add_cbar(ax, im, xlabel='dB')
-plt.savefig('./zylia-td.png', bbox_inches='tight')
+plt.savefig('./zylia-ZM1-td.png', bbox_inches='tight')
 
 # Transfer functions
 fig, ax = plt.subplots(figsize=(4, 4))
@@ -117,4 +119,4 @@ ax.set_yscale('log')
 ax.set_xlabel('azimuth in deg')
 ax.set_ylabel('frequency in Hz')
 add_cbar(ax, im, xlabel='dB')
-plt.savefig('./zylia-fd.png', bbox_inches='tight')
+plt.savefig('./zylia-ZM1-fd.png', bbox_inches='tight')

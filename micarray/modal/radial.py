@@ -60,6 +60,7 @@ def spherical_pw(N, k, r, setup):
     -------
     bn : (M, N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
+
     """
     kr = util.asarray_1d(k*r)
     n = np.arange(N+1)
@@ -96,6 +97,7 @@ def spherical_ps(N, k, r, rs, setup):
     -------
     bn : (M, N+1) numpy.ndarray
         Radial weights for all orders up to N and the given wavenumbers.
+
     """
     k = util.asarray_1d(k)
     krs = k*rs
@@ -122,7 +124,8 @@ def weights(N, kr, setup):
 
     .. math::
 
-        b_n(kr) = j_n(kr) - \frac{j_n^\prime(kr)}{h_n^{(2)\prime}(kr)}h_n^{(2)}(kr)
+        b_n(kr) =
+        j_n(kr) - \frac{j_n^\prime(kr)}{h_n^{(2)\prime}(kr)}h_n^{(2)}(kr)
 
     Parameters
     ----------
@@ -237,7 +240,6 @@ def regularize(dn, a0, method):
     hn : array_like
 
     """
-
     idx = np.abs(dn) > a0
 
     if method == 'none':
@@ -281,6 +283,7 @@ def diagonal_mode_mat(bk):
     Bk : (M, (N+1)**2, (N+1)**2) numpy.ndarray
         Multidimensional array containing diagnonal matrices with input
         vector on main diagonal.
+
     """
     bk = repeat_n_m(bk)
     if len(bk.shape) == 1:
@@ -310,6 +313,7 @@ def repeat_n_m(v):
     -------
      : (,(N+1)**2) numpy.ndarray
         Vector or stack of vectors containing repetated values.
+
     """
     krlist = [np.tile(v, (2*i+1, 1)).T for i, v in enumerate(v.T.tolist())]
     return np.squeeze(np.concatenate(krlist, axis=-1))
@@ -340,7 +344,8 @@ def circular_pw(N, k, r, setup):
     Returns
     -------
     bn : (M, 2*N+1) numpy.ndarray
-        Radial weights for all orders up to N and the given wavenumbers.
+        Radial weights for all orders up to N and the given wavenumbers
+
     """
     kr = util.asarray_1d(k*r)
     n = np.roll(np.arange(-N, N+1), -N)
@@ -376,7 +381,8 @@ def circular_ls(N, k, r, rs, setup):
     Returns
     -------
     bn : (M, 2*N+1) numpy.ndarray
-        Radial weights for all orders up to N and the given wavenumbers.
+        Radial weights for all orders up to N and the given wavenumbers
+
     """
     k = util.asarray_1d(k)
     krs = k*rs
@@ -400,7 +406,8 @@ def circ_radial_weights(N, kr, setup):
 
     .. math::
 
-        b_n(kr) = J_n(kr) - \frac{J_n^\prime(kr)}{H_n^{(2)\prime}(kr)}H_n^{(2)}(kr)
+        b_n(kr) =
+        J_n(kr) - \frac{J_n^\prime(kr)}{H_n^{(2)\prime}(kr)}H_n^{(2)}(kr)
 
     Parameters
     ----------
@@ -456,6 +463,7 @@ def circ_diagonal_mode_mat(bk):
     Bk : (M, 2*N+1, 2*N+1) numpy.ndarray
         Multidimensional array containing diagnonal matrices with input
         vector on main diagonal.
+
     """
     if len(bk.shape) == 1:
         bk = bk[np.newaxis, :]
@@ -502,6 +510,7 @@ def sos_radial_filter(N, r, setup, c=343, fs=44100, pzmap='mz'):
         Overall delay
     sos : list of (L, 6) arrays
         Second-order section filters
+
     """
     sos = []
     if setup is 'rigid':
@@ -578,7 +587,7 @@ def normalize_digital_filter_gain(s0, sinf, z0, zinf, fc, fs):
 
 
 def bessel_poly(n):
-    """Bessel polynomial coefficients"""
+    """Bessel polynomial coefficients."""
     beta = np.zeros(n + 1)  # n-th order polynomial has (n+1) coeffcieints
     beta[n] = 1  # This is always 1!
     for k in range(n - 1, -1, -1):  # Recurrence relation
@@ -587,13 +596,14 @@ def bessel_poly(n):
 
 
 def derivative_bessel_poly(n):
-    """Derivative of the Bessel polynomial"""
+    """Bessel polynomial derivative."""
     gamma = bessel_poly(n + 1)
     gamma[:-1] -= n * decrease_bessel_order_by_one(gamma)
     return gamma
 
 
 def decrease_bessel_order_by_one(beta):
+    """Bessel polynomial decrease order."""
     n = len(beta)-1
     alpha = np.zeros(n)
     for k in range(n - 1):
@@ -606,9 +616,9 @@ def crossover_frequencies(N, r_array, max_boost, modal_weight=util.maxre_sph,
                           c=343):
     """Crossover frequencies for filter-bank design.
 
-    The crossover frequencies are detemined in such a way
+    The crossover frequencies are determined in such a way
     that the maximum boost caused by each radial filter is limited.
-    The small argument approximation of the spheircal Hankel function
+    The small argument approximation of the spherical Hankel function
     normalized by the gain for each band is used for the computation.
     The returned array has '(N-1)' frequencies.
 
@@ -640,8 +650,8 @@ def tf_linph_filterbank(f_xo, f, type='butter'):
     f_xo : array_like
         Crossover frequencies in Hertz.
     f : array_like
-        Frequencies in Hertz for which the transfer functions are evaluated.
-    type : {'butter'}
+        Frequencies in Hertz at which the transfer functions are evaluated.
+    type : {'butter', 'butter_equal_slopes'}
         Type of filter responses.
 
     """
@@ -655,7 +665,9 @@ def tf_linph_filterbank(f_xo, f, type='butter'):
                           for n in range(N)])
         H_bpf = np.vstack([H_lpf[0], H_lpf[1:] * H_hpf[:-1], H_hpf[-1]])
         H_bpf /= np.sum(H_bpf, axis=0)
-    elif type == 'butter_maxorder':
+    elif type == 'butter_equal_slopes':
+        # special case for development purpose
+        # all bands exhibit equal filter slopes of order N+2
         H_lpf = np.array([tf_butter(N+2, omega, omega_xo[n], btype='low')
                           for n in range(N)])
         H_hpf = np.array([tf_butter(N+2, omega, omega_xo[n], btype='high')
@@ -670,7 +682,7 @@ def tf_linph_filterbank(f_xo, f, type='butter'):
 def tf_equalized_radial_filters(N, R, f, max_boost,
                                 modal_weight=util.maxre_sph, c=343,
                                 type='butter'):
-    """Tranfer functions of equalized radial filters.
+    """Transfer functions of equalized radial filters.
 
     N : int
         Highest spherical harmonic order (Ambisonic order).
@@ -684,6 +696,8 @@ def tf_equalized_radial_filters(N, R, f, max_boost,
         Modal weighting function.
     c : float, optional
         Speed of sound in m/s.
+    type : {'butter', 'butter_maxorder'}
+        Type of filter responses.
 
     """
     kr = 2 * np.pi * f / c * R
