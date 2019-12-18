@@ -55,9 +55,9 @@ t_R = t - R/c*1000
 def decorate_subplots(axes, **kwargs):
     for ax in axes.flat:
         if ax.is_first_col():
-            ax.set_ylabel('Amplitude / dB')
+            ax.set_ylabel('Amplitude in dB')
         if ax.is_last_row():
-            ax.set_xlabel('Time / ms')
+            ax.set_xlabel('Time in ms')
         ax.grid(True)
         ax.set(**kwargs)
 

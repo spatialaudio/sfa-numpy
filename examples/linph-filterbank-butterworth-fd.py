@@ -2,7 +2,7 @@
 
 - The target magnitude responses fo the filter-bank is designed
   by using the zero-phase Butterworth responses.
-  (not to confused with typical Butterworth filters)
+  (not to confused with typical (minphase) Butterworth filters)
 
     Reference
     ---------
@@ -51,15 +51,15 @@ for i, Hi in enumerate(H_fbank):
     ax.semilogx(f, db(Hi), lw=3, label='${}$'.format(i), alpha=0.5)
 for fx in f_xo:
     ax.semilogx(fx, 0, 'kv')
-    ax.text(fx, 0, '{:0.1f}'.format(fx), rotation=30,
+    ax.text(fx, 0, '{:0.1f} Hz'.format(fx), rotation=30,
             horizontalalignment='left', verticalalignment='bottom')
-ax.semilogx(f, db(H_tot), 'k:', label='Tot.')
+ax.semilogx(f, db(H_tot), 'k:', label='Sum')
 ax.set_xlim(fmin, fmax)
 ax.set_ylim(-100, 12)
 ax.set_xscale('log')
 ax.grid(True)
-ax.set_xlabel('Frequency / Hz')
-ax.set_ylabel('Magnitude / dB')
+ax.set_xlabel('frequency in Hz')
+ax.set_ylabel('magnitude in dB')
 ax.legend(title='subband')
 plt.savefig('./linph-filterbank-fd.png', bbox_inches='tight')
 
@@ -74,7 +74,7 @@ ax.set_xlim(fmin, fmax)
 ax.set_ylim(-23, 33)
 ax.set_xscale('log')
 ax.grid(True)
-ax.set_xlabel('Frequency / Hz')
-ax.set_ylabel('Magnitude / dB')
+ax.set_xlabel('frequency in Hz')
+ax.set_ylabel('magnitude in dB')
 ax.legend(title='order', loc='lower right', ncol=2)
 plt.savefig('./linph-filterbank-butterworth-fd.png', bbox_inches='tight')

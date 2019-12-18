@@ -1,4 +1,4 @@
-"""Sidelobe suppression with different equalization schemes
+"""Sidelobe suppression with different equalization schemes.
 
 - The target magnitude responses fo the filter-bank is designed
   by using the zero-phase Butterworth responses.

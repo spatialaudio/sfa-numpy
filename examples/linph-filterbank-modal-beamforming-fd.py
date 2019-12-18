@@ -58,9 +58,9 @@ def decorate_subplots(axes, im, **kwarg):
     for axi in axes.flat:
         decorate_singleplot(axi, **kwarg)
         if axi.is_last_row():
-            axi.set_xlabel('Angle / deg')
+            axi.set_xlabel('angle in deg')
         if axi.is_first_col():
-            axi.set_ylabel('Frequency / Hz')
+            axi.set_ylabel('frequency in Hz')
     add_cbar(axes[0, 1], im, pad=0.02, width=0.03, xlabel='dB')
 
 
@@ -77,8 +77,8 @@ gridspec_kw = {'wspace': 0.1}
 fig, ax = plt.subplots(figsize=figsize)
 im = ax.pcolormesh(azideg, f, db(Y.T), **im_kw)
 ax.plot(np.zeros(N), f_xo, 'wx', alpha=0.5)
-decorate_singleplot(ax, xticks=phiticks, xlabel='Azimuth / deg',
-                    ylabel='Frequnecy / Hz')
+decorate_singleplot(ax, xticks=phiticks, xlabel='azimuth in deg',
+                    ylabel='frequency in Hz')
 add_cbar(ax, im, xlabel='dB')
 plt.savefig('spatial-responses-fd.png', bbox_inches='tight')
 

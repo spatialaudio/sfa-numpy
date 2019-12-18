@@ -46,14 +46,14 @@ for n in range(N+1):
 
         ax.semilogx(f, db(lf_approx), c='black', ls=':')
         ax.semilogx(fn, db(gain_at_crossover), 'C0o')
-        ax.text(fn, db(gain_at_crossover), '{:3.1f}'.format(fn),
+        ax.text(fn, db(gain_at_crossover), '{:3.1f} Hz'.format(fn),
                 ha='left', va='bottom', rotation=55)
 ax.hlines(max_boost, xmin=fmin, xmax=fmax,
           colors='C3', linestyle='--', label='max. boost')
 ax.set_xlim(fmin, fmax)
 ax.set_ylim(-10, 90)
 ax.grid(True)
-ax.set_xlabel('Frequency / Hz')
-ax.set_ylabel('Magnitude / dB')
+ax.set_xlabel('frequency in Hz')
+ax.set_ylabel('magnitude in dB')
 ax.legend(title='Order', ncol=2)
 plt.savefig('./crossover-frequencies.png', bbox_inches='tight')
