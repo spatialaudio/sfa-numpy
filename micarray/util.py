@@ -170,3 +170,11 @@ def modal_norm(a, ord=2):
     """Norm of the coefficients in the spherical harmonics domain."""
     num_degree = 2 * np.arange(a.shape[-1]) + 1
     return np.sum(num_degree * a**ord, axis=-1)**(1/ord)
+
+
+def tapering_window(Nfull, Nedge):
+    w = np.ones(Nfull)
+    alpha = np.linspace(0, np.pi, Nedge, endpoint=False)
+    w[:Nedge] = 0.5 + 0.5 * np.cos(alpha[::-1])
+    w[-Nedge:] = 0.5 + 0.5 * np.cos(alpha)
+    return w
