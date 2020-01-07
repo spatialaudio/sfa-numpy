@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import linalg
+from scipy.special import eval_legendre as legendre
 
 
 def norm_of_columns(A, p=2):
@@ -16,6 +17,7 @@ def norm_of_columns(A, p=2):
     -------
     array_like
         p-norm of each column of A.
+
     """
     _, N = A.shape
     return np.asarray([linalg.norm(A[:, j], ord=p) for j in range(N)])
@@ -34,7 +36,8 @@ def coherence_of_columns(A):
     Returns
     -------
     array_like
-        Mutual coherence of columns of A.
+        Mutual coherence of columns of A
+
     """
     A = np.asmatrix(A)
     _, N = A.shape
@@ -81,6 +84,7 @@ def matdiagmul(A, b):
     -------
     array_like
         Result of matrix multiplication.
+
     """
     if len(b.shape) == 1:
         b = b[np.newaxis, :]
@@ -93,7 +97,7 @@ def matdiagmul(A, b):
     return C
 
 
-def db(x, power=False):
+def db(x, *, power=False):
     """Convert *x* to decibel.
 
     Parameters
@@ -106,4 +110,71 @@ def db(x, power=False):
 
     """
     with np.errstate(divide='ignore'):
-        return 10 if power else 20 * np.log10(np.abs(x))
+        return (10 if power else 20) * np.log10(np.abs(x))
+
+
+def double_factorial(n):
+    """Double factorial."""
+    if n == 0:
+        return 1
+    elif n == 1:
+        return 1
+    else:
+        return n * double_factorial(n - 2)
+
+
+def maxre_sph(N):
+    """max-reE modal weight for spherical harmonics expansion.
+
+    Parameter
+    ---------
+    N : int
+        Highest spherical harmonic order (Ambisonic order).
+
+    see
+    F. Zotter, M. Frank: "All-Round Ambisonic Panning and Decoding."
+    J. Audio Eng. Soc. 60(10):207-820, October 2012
+
+    """
+    theta = np.deg2rad(137.9 / (N + 1.52))
+    return legendre(np.arange(N + 1), np.cos(theta))
+
+
+def point_spread(N, phi, modal_weight=maxre_sph, equalization='omni'):
+    """Directional response for modal weight type and equalization scheme.
+
+    Parameters
+    ----------
+    N : int
+        Highest spherical harmonic order (Ambisonic order).
+    phi : array_like
+        Angular distance from the main axis in radian.
+    modal_weight : callable, optional
+        Modal weighting function.
+    equalization : {'omni', 'diffuse', 'free'}, optional
+        Equalization scheme.
+
+    """
+    a = modal_weight(N)
+    if equalization == 'omni':
+        pass
+    elif equalization == 'diffuse':
+        a *= 1 / modal_norm(a, ord=2)
+    elif equalization == 'free':
+        a *= 1 / modal_norm(a, ord=1)
+    return np.stack([(2*n+1) * a[n] * legendre(n, np.cos(phi))
+                     for n in range(N+1)])
+
+
+def modal_norm(a, ord=2):
+    """Norm of the coefficients in the spherical harmonics domain."""
+    num_degree = 2 * np.arange(a.shape[-1]) + 1
+    return np.sum(num_degree * a**ord, axis=-1)**(1/ord)
+
+
+def tapering_window(Nfull, Nedge):
+    w = np.ones(Nfull)
+    alpha = np.linspace(0, np.pi, Nedge, endpoint=False)
+    w[:Nedge] = 0.5 + 0.5 * np.cos(alpha[::-1])
+    w[-Nedge:] = 0.5 + 0.5 * np.cos(alpha)
+    return w
