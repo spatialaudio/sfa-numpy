@@ -17,10 +17,12 @@ import sys
 import os
 from subprocess import check_output
 
+import sphinx
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+#sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -32,16 +34,36 @@ needs_sphinx = '1.3'  # for sphinx.ext.napoleon
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',  # support for NumPy-style docstrings
     'sphinx.ext.intersphinx',
+    'sphinx.ext.doctest',
+    'sphinxcontrib.bibtex',
+    'sphinx.ext.extlinks',
     'matplotlib.sphinxext.plot_directive',
+    'nbsphinx',
 ]
+
+bibtex_bibfiles = ['references.bib']
+
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
+# Tell autodoc that the documentation is being generated
+sphinx.SFA_DOCS_ARE_BEING_BUILT = True
 
 autoclass_content = 'init'
 autodoc_member_order = 'bysource'
-autodoc_default_flags = ['members', 'undoc-members']
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+}
+
+autosummary_generate = ['modal']
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
@@ -58,16 +80,29 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
-    'matplotlib': ('http://matplotlib.org/', None),
+    'matplotlib': ('https://matplotlib.org/', None),
 }
+
+extlinks = {'SFA': ('https://sfa.readthedocs.io/en/latest/%s',
+                    'http://sfa-numpy.readthedocs.io/')}
 
 plot_include_source = True
 plot_html_show_source_link = False
 plot_html_show_formats = False
-plot_pre_code = ""
+plot_pre_code = ''
+plot_rcparams = {
+    'savefig.bbox': 'tight',
+}
+plot_formats = ['svg', 'pdf']
+
+mathjax_config = {
+    'TeX': {
+        'extensions': ['newcommand.js', 'begingroup.js'],  # Support for \gdef
+    },
+}
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['_template']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -80,8 +115,8 @@ master_doc = 'index'
 
 # General information about the project.
 authors = 'SFA Toolbox Developers'
-project = 'Sound Field Analysis Toolbox'
-copyright = '2017, ' + authors
+project = 'SFA Toolbox'
+copyright = '2021, ' + authors
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -105,10 +140,15 @@ except Exception:
 #today = ''
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
+try:
+    today = check_output(['git', 'show', '-s', '--format=%ad', '--date=short'])
+    today = today.decode().strip()
+except Exception:
+    today = '<unknown date>'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '**/.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -134,8 +174,54 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+jinja_define = """
+{% set docname = env.doc2path(env.docname, base='doc') %}
+{% set latex_href = ''.join([
+    '\href{https://github.com/SFAtoolbox/SFA-python/blob/',
+    env.config.release,
+    '/',
+    docname | escape_latex,
+    '}{\sphinxcode{\sphinxupquote{',
+    docname | escape_latex,
+    '}}}',
+]) %}
+"""
+
+nbsphinx_prolog = jinja_define + r"""
+.. only:: html
+
+    .. role:: raw-html(raw)
+        :format: html
+
+    .. nbinfo::
+
+        This page was generated from `{{ docname }}`__.
+        Interactive online version:
+        :raw-html:`<a href="https://mybinder.org/v2/gh/SFAtoolbox/SFA-python/{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
+
+    __ https://github.com/SFAtoolbox/SFA-python/blob/
+        {{ env.config.release }}/{{ docname }}
+
+.. raw:: latex
+
+    \nbsphinxstartnotebook{\scriptsize\noindent\strut
+    \textcolor{gray}{The following section was generated from {{ latex_href }}
+    \dotfill}}
+"""
+
+nbsphinx_epilog = jinja_define + r"""
+.. raw:: latex
+
+    \nbsphinxstopnotebook{\scriptsize\noindent\strut
+    \textcolor{gray}{\dotfill\ {{ latex_href }} ends here.}}
+"""
+
 
 # -- Options for HTML output ----------------------------------------------
+
+def setup(app):
+    """Include custom theme files to sphinx HTML header"""
+    app.add_stylesheet('css/title.css')
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -203,6 +289,7 @@ html_static_path = ['_static']
 
 # If true, links to the reST sources are added to the pages.
 html_show_sourcelink = True
+html_sourcelink_suffix = ''
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
@@ -221,20 +308,32 @@ html_show_sourcelink = True
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'SFA'
 
+html_scaled_image_link = False
 
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-'papersize': 'a4paper',
-
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
-
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
-'printindex': '',
+    'papersize': 'a4paper',
+    'printindex': '',
+    'sphinxsetup': r"""
+        VerbatimColor={HTML}{F5F5F5},
+        VerbatimBorderColor={HTML}{E0E0E0},
+        noteBorderColor={HTML}{E0E0E0},
+        noteborder=1.5pt,
+        warningBorderColor={HTML}{E0E0E0},
+        warningborder=1.5pt,
+        warningBgColor={HTML}{FBFBFB},
+    """,
+    'preamble': r"""
+\usepackage[sc,osf]{mathpazo}
+\linespread{1.05}  % see http://www.tug.dk/FontCatalogue/urwpalladio/
+\renewcommand{\sfdefault}{pplj}  % Palatino instead of sans serif
+\IfFileExists{zlmtt.sty}{
+    \usepackage[light,scaled=1.05]{zlmtt}  % light typewriter font from lmodern
+}{
+    \renewcommand{\ttdefault}{lmtt}  % typewriter font from lmodern
+}
+""",
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -267,7 +366,7 @@ latex_domain_indices = False
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-#man_pages = [('index', 'sfs', project, [authors], 1)]
+#man_pages = [('index', 'SFA', project, [authors], 1)]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
@@ -279,7 +378,7 @@ latex_domain_indices = False
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 #texinfo_documents = [
-#  ('index', 'SFS', project, project, 'SFS', 'Sound Field Synthesis Toolbox.',
+#  ('index', 'SFA', project, project, 'SFA', 'Sound Field Analysis Toolbox.',
 #   'Miscellaneous'),
 #]
 

@@ -7,7 +7,9 @@
     usage
     modal
     utilities
+    references
 
 .. only:: html
 
     * :ref:`genindex`
+    
