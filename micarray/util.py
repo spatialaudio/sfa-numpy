@@ -107,3 +107,79 @@ def db(x, power=False):
     """
     with np.errstate(divide='ignore'):
         return 10 if power else 20 * np.log10(np.abs(x))
+
+
+def sph2cart(alpha, beta, r):
+    r"""Spherical to cartesian coordinate transform.
+
+    taken from https://github.com/sfstoolbox/sfs-python commit: efdda38
+
+    .. math::
+
+        x = r \cos \alpha \sin \beta \\
+        y = r \sin \alpha \sin \beta \\
+        z = r \cos \beta
+
+    with :math:`\alpha \in [0, 2\pi), \beta \in [0, \pi], r \geq 0`
+
+    Parameters
+    ----------
+    alpha : float or array_like
+            Azimuth angle in radiants
+    beta : float or array_like
+            Colatitude angle in radiants (with 0 denoting North pole)
+    r : float or array_like
+            Radius
+
+    Returns
+    -------
+    x : float or `numpy.ndarray`
+        x-component of Cartesian coordinates
+    y : float or `numpy.ndarray`
+        y-component of Cartesian coordinates
+    z : float or `numpy.ndarray`
+        z-component of Cartesian coordinates
+
+    """
+    x = r * np.cos(alpha) * np.sin(beta)
+    y = r * np.sin(alpha) * np.sin(beta)
+    z = r * np.cos(beta)
+    return x, y, z
+
+
+def cart2sph(x, y, z):
+    r"""Cartesian to spherical coordinate transform.
+
+    taken from https://github.com/sfstoolbox/sfs-python commit: efdda38
+
+    .. math::
+
+        \alpha = \arctan \left( \frac{y}{x} \right) \\
+        \beta = \arccos \left( \frac{z}{r} \right) \\
+        r = \sqrt{x^2 + y^2 + z^2}
+
+    with :math:`\alpha \in [-pi, pi], \beta \in [0, \pi], r \geq 0`
+
+    Parameters
+    ----------
+    x : float or array_like
+        x-component of Cartesian coordinates
+    y : float or array_like
+        y-component of Cartesian coordinates
+    z : float or array_like
+        z-component of Cartesian coordinates
+
+    Returns
+    -------
+    alpha : float or `numpy.ndarray`
+            Azimuth angle in radiants
+    beta : float or `numpy.ndarray`
+            Colatitude angle in radiants (with 0 denoting North pole)
+    r : float or `numpy.ndarray`
+            Radius
+
+    """
+    r = np.sqrt(x**2 + y**2 + z**2)
+    alpha = np.arctan2(y, x)
+    beta = np.arccos(z / r)
+    return alpha, beta, r

@@ -4,7 +4,7 @@ from scipy import special
 from .. import util
 from warnings import warn
 try:
-    import quadpy  # only for grid_lebedev()
+    import quadpy.u3._lebedev as _lebedev  # only for grid_lebedev()
 except ImportError:
     pass
 
@@ -33,6 +33,8 @@ def sht_matrix(N, azi, colat, weights=None):
 
     (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform (or synthesis)
     matrix in examples and documentation.)
+
+    cf. eq. (1.9), (3.29) :cite:`Rafaely2019_book`
 
     Parameters
     ----------
@@ -265,13 +267,30 @@ def grid_lebedev(n):
         return matches[0]
 
     if n > 65:
+        print(n)
         raise ValueError("Maximum available Lebedev grid order is 65. "
                          "(requested: {})".format(n))
 
     # this needs https://pypi.python.org/pypi/quadpy
-    q = quadpy.sphere.Lebedev(degree=available_quadrature(2*n))
+    # currently validated with 0.16.5
+    degree = _lebedev.lebedev_003a()  # tmp call to mute pep8 warning
+    degree = available_quadrature(2 * n)
+    # the nice API handling currently returns only up to lebedev_047:
+    # q = quadpy.u3.get_good_scheme(degree=degree)
+    # thus we call the appropriate lebedev function directly in low level,
+    # not nice, but then we are save until the quadpy API will be consistent:
+    if degree == 3:
+        fcn = '_lebedev.lebedev_00' + str(degree) + 'a()'
+    elif degree < 10:
+        fcn = '_lebedev.lebedev_00'+str(degree) + '()'
+    elif degree < 100:
+        fcn = '_lebedev.lebedev_0' + str(degree) + '()'
+    else:
+        fcn = '_lebedev.lebedev_' + str(degree) + '()'
+    q = eval(fcn)
     if np.any(q.weights < 0):
         warn("Lebedev grid of order {} has negative weights.".format(n))
-    azi = q.azimuthal_polar[:, 0]
-    colat = q.azimuthal_polar[:, 1]
+    azi, colat, r = util.cart2sph(q.points[0, :],
+                                  q.points[1, :],
+                                  q.points[2, :])
     return azi, colat, 4*np.pi*q.weights
