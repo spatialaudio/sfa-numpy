@@ -18,3 +18,4 @@ for script in cwd.glob('*.py'):
     if result.returncode:
         print('Error running', script, file=sys.stderr)
         sys.exit(result.returncode)
+        

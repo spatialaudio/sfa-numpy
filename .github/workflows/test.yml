@@ -3,38 +3,39 @@ name: Test
 on: [push, pull_request]
 
 jobs:
-    build:
+  build:
 
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                os: [ubuntu-latest, macOS-latest, windows-latest]
-                python-version: [3.6, 3.7, 3.8]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8]
 
-        steps:
-        - uses: actions/checkout@v2
-        - name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v2
-            with:
-                python-version: ${{ matrix.python-version }}
-        - name: Prepare Ubuntu
-            run: |
-                sudo apt-get update
-                sudo apt-get install --no-install-recommends -y ffmpeg
-            if: matrix.os == 'ubuntu-latest'
-        - name: Prepare OSX
-            run: brew install ffmpeg
-            if: matrix.os == 'macOS-latest'
-        - name: prepare Windows
-            run: choco install ffmpeg
-            if: matrix.os == 'windows-latest'
-        - name: Install dependencies
-            run: |
-                python -V
-                python -m pip install --upgrade pip
-                python -m pip install .
-                python -m pip install -r doc/requirements.txt
-        - name: Test examples
-            run: python examples/run_all.py
-        - name: Test documentation
-            run: python -m sphinx doc/ _build/
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Prepare Ubuntu
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y ffmpeg
+      if: matrix.os == 'ubuntu-latest'
+    - name: Prepare OSX
+      run: brew install ffmpeg
+      if: matrix.os == 'macOS-latest'
+    - name: prepare Windows
+      run: choco install ffmpeg
+      if: matrix.os == 'windows-latest'
+    - name: Install dependencies
+      run: |
+        python -V
+        python -m pip install --upgrade pip
+        python -m pip install .
+        python -m pip install -r doc/requirements.txt
+    - name: Test examples
+      run: python examples/run_all.py
+    - name: Test documentation
+      run: python -m sphinx doc/ _build/
+      
