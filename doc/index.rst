@@ -7,6 +7,7 @@
     usage
     modal
     utilities
+    examples
 
 .. only:: html
 
