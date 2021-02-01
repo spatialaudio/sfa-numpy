@@ -17,10 +17,12 @@ import sys
 import os
 from subprocess import check_output
 
+import sphinx
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+#sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -32,12 +34,32 @@ needs_sphinx = '1.3'  # for sphinx.ext.napoleon
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',  # support for NumPy-style docstrings
     'sphinx.ext.intersphinx',
+    'sphinx.ext.doctest',
+    # 'sphinxcontrib.bibtex',
+    'sphinx.ext.extlinks',
     'matplotlib.sphinxext.plot_directive',
+    'nbsphinx',
 ]
+
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
+
+# Tell autodoc that the documentation is being generated
+sphinx.SFS_DOCS_ARE_BEING_BUILT = True
+
+autoclass_content = 'init'
+autodoc_member_order = 'bysource'
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+}
 
 autoclass_content = 'init'
 autodoc_member_order = 'bysource'
@@ -61,10 +83,17 @@ intersphinx_mapping = {
     'matplotlib': ('http://matplotlib.org/', None),
 }
 
+extlinks = {'sfs': ('https://sfs.readthedocs.io/en/3.2/%s',
+                    'https://sfs.rtfd.io/')}
+
 plot_include_source = True
 plot_html_show_source_link = False
 plot_html_show_formats = False
 plot_pre_code = ""
+plot_rcparams = {
+    'savefig.bbox': 'tight',
+}
+plot_formats = ['svg', 'pdf']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -105,10 +134,15 @@ except Exception:
 #today = ''
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
+try:
+    today = check_output(['git', 'show', '-s', '--format=%ad', '--date=short'])
+    today = today.decode().strip()
+except Exception:
+    today = '<unknown date>'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '**/.ipynb_checkpoints']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -133,7 +167,6 @@ pygments_style = 'sphinx'
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
-
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -203,6 +236,7 @@ html_static_path = ['_static']
 
 # If true, links to the reST sources are added to the pages.
 html_show_sourcelink = True
+html_sourcelink_suffix = ''
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
