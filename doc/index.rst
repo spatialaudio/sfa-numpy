@@ -8,6 +8,7 @@
     modal
     utilities
     examples
+    references
 
 .. only:: html
 
