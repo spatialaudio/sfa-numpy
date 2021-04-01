@@ -34,6 +34,8 @@ def sht_matrix(N, azi, colat, weights=None):
     (Note: :math:`\mathbf{Y}` is interpreted as the inverse transform (or synthesis)
     matrix in examples and documentation.)
 
+    cf. eq. (1.9), (3.29) :cite:`Rafaely2019_book`
+
     Parameters
     ----------
     N : int
